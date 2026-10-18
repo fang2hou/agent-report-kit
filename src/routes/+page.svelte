@@ -1,8 +1,45 @@
-<script>
+<script lang="ts">
   import report from '#lib/report.json';
 
-  let answers = $state({});
+  interface UiStrings {
+    summary: string;
+    review: string;
+    picked: string;
+    unselected: string;
+    colon: string;
+  }
+
+  const FALLBACK_STRINGS: UiStrings = {
+    summary: 'Conclusion',
+    review: 'To decide',
+    picked: 'Selected',
+    unselected: 'none',
+    colon: ': '
+  };
+
+  const UI_STRINGS: Record<string, UiStrings> = {
+    'zh-CN': {
+      summary: '结论',
+      review: '待决问题',
+      picked: '已选',
+      unselected: '未选',
+      colon: '：'
+    },
+    ja: {
+      summary: '結論',
+      review: '確認事項',
+      picked: '選択済み',
+      unselected: '未選択',
+      colon: '：'
+    }
+  };
+
+  const t = UI_STRINGS[report.lang] ?? FALLBACK_STRINGS;
+
+  let answers: Record<string, string> = $state({});
   const firstQuestion = report.review.questions[0];
+
+  document.documentElement.lang = report.lang;
 </script>
 
 <svelte:head>
@@ -14,28 +51,28 @@
     <h1>{report.title}</h1>
   </header>
   <section class="summary">
-    <h2>摘要</h2>
+    <h2>{t.summary}</h2>
     <ul>
-      {#each report.summary as point, i (i)}
+      {#each report.summary as point (point)}
         <li>{point}</li>
       {/each}
     </ul>
   </section>
-  {#each report.sections as section, si (si)}
+  {#each report.sections as section (section.heading)}
     <section>
       <h2>{section.heading}</h2>
-      {#each section.blocks as block, bi (bi)}
+      {#each section.blocks as block (block)}
         {#if block.type === 'p'}
           <p>{block.text}</p>
         {:else if block.type === 'table'}
           <div class="table-wrap">
             <table>
               <thead>
-                <tr>{#each block.columns as c, ci (ci)}<th>{c}</th>{/each}</tr>
+                <tr>{#each block.columns as c (c)}<th>{c}</th>{/each}</tr>
               </thead>
               <tbody>
-                {#each block.rows as row, ri (ri)}
-                  <tr>{#each row as cell, ci (ci)}<td>{cell}</td>{/each}</tr>
+                {#each block.rows as row (row)}
+                  <tr>{#each row as cell (cell)}<td>{cell}</td>{/each}</tr>
                 {/each}
               </tbody>
             </table>
@@ -46,11 +83,11 @@
   {/each}
   {#if report.review}
     <form>
-      <h2>待确认</h2>
-      {#each report.review.questions as q, qi (qi)}
+      <h2>{t.review}</h2>
+      {#each report.review.questions as q (q.id)}
         <fieldset>
           <legend>{q.text}</legend>
-          {#each q.options as opt, oi (oi)}
+          {#each q.options as opt (opt.value)}
             <label>
               <input
                 type="radio"
@@ -63,7 +100,9 @@
           {/each}
         </fieldset>
       {/each}
-      <p class="picked">已选：{answers[firstQuestion.id] ?? '未选'}</p>
+      {#if firstQuestion}
+        <p class="picked">{t.picked}{t.colon}{answers[firstQuestion.id] ?? t.unselected}</p>
+      {/if}
     </form>
   {/if}
 </main>

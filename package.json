@@ -1,21 +1,29 @@
 {
   "name": "report-kit",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "imports": {
     "#lib/*": "./src/lib/*"
   },
   "scripts": {
+    "prepare": "svelte-kit sync",
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^4.0.0",
     "@sveltejs/kit": "^3.1.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0",
     "svelte": "^5.57.2",
+    "svelte-check": "^4.7.7",
+    "typescript": "^5.9.3",
     "vite": "^8.3.4"
   }
 }
