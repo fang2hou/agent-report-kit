@@ -1,10 +1,52 @@
 <script lang="ts">
   import type { Block } from '#lib/schema';
+  import Scroller from '#lib/components/Scroller.svelte';
 
   let { block }: { block: Block } = $props();
 
   const barMax = (items: { value: number }[], max?: number) =>
     max ?? Math.max(...items.map((i) => i.value));
+
+  // Wide blocks break out of the reading measure — kept near it (1.35×) so
+  // the eye still has an anchor; anything wider scrolls inside a Scroller.
+  const WIDE = 'col-span-full w-[min(calc(var(--measure)*1.35),100%)] justify-self-center';
+
+  // Figures start inside the measure and only break out when their intrinsic
+  // svg width actually overflows the column — "wide by need, not by default".
+  // An explicit `wide: true` in report.json forces the breakout.
+  let fig = $state<HTMLElement>();
+  // svelte-ignore state_referenced_locally — blocks render once from static
+  // report JSON; the prop never changes, so capturing it at init is correct.
+  let autoWide = $state(block.type === 'figure' && block.wide === true);
+  let columnCache = 0;
+  $effect(() => {
+    if (block.type !== 'figure' || block.wide === true) return;
+    if (!fig) return;
+    const el = fig;
+    const svg = el.querySelector(':scope > svg');
+    if (!svg) return;
+    const intrinsic = () => parseFloat(svg.getAttribute('width') ?? '') || 0;
+    // The promoted figure spans 1.35×, so its own width can never re-supply
+    // the narrow column. Cache the column measured while narrow — otherwise
+    // promotion changes the fallback width and the two states oscillate.
+    const remeasure = () => {
+      if (!autoWide) {
+        columnCache =
+          (el.parentElement?.querySelector<HTMLElement>(':scope > p, :scope > ul, :scope > ol'))
+            ?.clientWidth ?? el.clientWidth;
+      }
+      return columnCache;
+    };
+    const check = () => {
+      const w = intrinsic();
+      if (w) autoWide = w > remeasure() + 1;
+    };
+    check();
+    document.fonts.ready.then(check);
+    const ro = new ResizeObserver(check);
+    ro.observe(el.parentElement ?? el);
+    return () => ro.disconnect();
+  });
 
   const CALLOUT: Record<string, string> = {
     '': 'border-accent bg-accent-soft',
@@ -57,14 +99,14 @@
 {:else if block.type === 'figures'}
   <div class="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-x-5 gap-y-3.5 my-[1.4em] font-ui">
     {#each block.items as fig (fig.label)}
-      <div class="border-t-2 border-line-2 pt-2">
+      <div class="border-t-2 border-line-2 pt-3">
         <b class="block text-[1.75em] leading-[1.2] font-semibold tabular-nums">{fig.value}</b>
         <span class="text-[0.86em] text-muted">{fig.label}</span>
       </div>
     {/each}
   </div>
 {:else if block.type === 'table'}
-  <div class="overflow-x-auto my-[1.2em]">
+  <Scroller class={`my-[1.2em] ${block.wide ? WIDE : ''}`} label="table">
     <table class="w-full border-collapse text-[0.9em] leading-[1.55] tracking-normal">
       <thead>
         <tr>
@@ -97,7 +139,7 @@
         {/each}
       </tbody>
     </table>
-  </div>
+  </Scroller>
 {:else if block.type === 'bars'}
   {@const max = barMax(block.items, block.max)}
   <div class="grid grid-cols-[minmax(6em,max-content)_1fr_auto] items-center gap-x-3.5 gap-y-2 my-[1.2em] font-ui text-[0.9em]">
@@ -110,11 +152,13 @@
     {/each}
   </div>
 {:else if block.type === 'compare'}
-  <div class={`grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4 my-[1.4em] ${block.wide ? 'col-span-full w-[min(1080px,100%)] justify-self-center' : ''}`}>
+  <div class={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 my-[1.4em] ${block.wide ? WIDE : ''}`}>
     {#each block.cards as card (card.heading)}
       <article
-        class={`relative rounded-lg border border-line bg-surface px-[22px] py-[18px] supports-[corner-shape:squircle]:rounded-xl ${
-          card.pick ? 'border-accent shadow-[inset_0_0_0_1px_var(--color-accent)]' : ''
+        class={`relative rounded-lg border bg-surface px-[22px] py-[18px] transition-colors duration-150 supports-[corner-shape:squircle]:rounded-xl ${
+          card.pick
+            ? 'border-dashed border-[color-mix(in_srgb,var(--color-accent)_55%,transparent)]'
+            : 'border-line-2'
         }`}
       >
         {#if card.badge}
@@ -161,19 +205,41 @@
     {/if}
   </details>
 {:else if block.type === 'figure'}
-  <figure class={`my-[1.6em] ${block.wide ? 'col-span-full w-[min(1080px,100%)] justify-self-center' : ''}`}>
-    {@html block.svg}
-    <figcaption class="mt-2 font-ui text-[0.86em] text-muted">{block.caption}</figcaption>
+  <figure class={`my-[1.6em] ${autoWide ? WIDE : ''}`} bind:this={fig}>
+    {#if autoWide}
+      <Scroller label="figure">
+        {@html block.svg}
+      </Scroller>
+    {:else}
+      {@html block.svg}
+    {/if}
+    <figcaption class="mt-2 text-center font-ui text-[0.86em] text-muted">{block.caption}</figcaption>
   </figure>
+{:else if block.type === 'swatch'}
+  <div class={`grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 my-[1.4em] ${block.wide ? WIDE : ''}`}>
+    {#each block.items as item (item.html)}
+      <div class="flex min-h-[96px] flex-col items-center justify-center gap-2.5 rounded-lg border border-line bg-surface px-4 py-4 supports-[corner-shape:squircle]:rounded-xl">
+        <div class="flex items-center justify-center">{@html item.html}</div>
+        {#if item.label}
+          <span class="text-center font-ui text-[max(0.72em,14px)] text-muted">{item.label}</span>
+        {/if}
+      </div>
+    {/each}
+  </div>
 {/if}
 
 <style>
-  /* Embedded diagrams must fit the column and inherit the UI font. */
+  /* Embedded diagrams must fit the column and inherit the UI font. Pele
+     output keeps its natural width, so it also centers in the column. */
   figure :global(img),
   figure :global(svg) {
     display: block;
     max-width: 100%;
     height: auto;
+  }
+
+  figure :global(svg.pele) {
+    margin-inline: auto;
   }
 
   figure :global(svg) {

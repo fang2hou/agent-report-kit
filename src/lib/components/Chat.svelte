@@ -31,7 +31,7 @@
   const WORDS: Record<string, ChatWords> = {
     zh: {
       on: '与 Agent 连接中',
-      off: '本地模式 · 未连接',
+      off: '本地模式（未连接）',
       ask: '就这段向 Agent 提问…',
       send: '发送',
       thread: '与 Agent 的讨论',
@@ -46,7 +46,7 @@
     },
     ja: {
       on: 'Agentと接続中',
-      off: 'ローカルモード・未接続',
+      off: 'ローカルモード（未接続）',
       ask: 'この部分について Agent に質問…',
       send: '送信',
       thread: 'Agentとのやり取り',
@@ -61,7 +61,7 @@
     },
     en: {
       on: 'Connected to Agent',
-      off: 'Local mode · not connected',
+      off: 'Local mode (not connected)',
       ask: 'Ask the Agent about this passage…',
       send: 'Send',
       thread: 'Discussion with the Agent',
@@ -93,13 +93,21 @@
     const lang = (document.documentElement.lang || 'en').slice(0, 2).toLowerCase();
     const W: ChatWords = { ...WORDS.en!, ...WORDS[lang] };
 
-    chip.title = W.list;
     chip.ariaLabel = W.list;
+    // The send-button key hint: both symbols are drawn, not text glyphs —
+    // font baselines and ink offsets cannot pull them out of alignment.
+    const mac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+    document.documentElement.dataset.os = mac ? 'mac' : 'win';
+    const cmdKey =
+      '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const enterArrow =
+      '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M11.5 3.5v4.5a2 2 0 0 1-2 2H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 7.5 4 10l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const sendLabel = () => `${W.send}<span class="qa-kbd">${mac ? cmdKey : 'Ctrl'}${enterArrow}</span>`;
     const titleSpan = list.querySelector('.qa-title');
     if (titleSpan) titleSpan.textContent = W.list;
     input.placeholder = W.ask;
     const sendBtn = bubble.querySelector('.qa-send');
-    if (sendBtn) sendBtn.textContent = W.send;
+    if (sendBtn) sendBtn.innerHTML = sendLabel();
 
     let online = false;
     const setConn = (on: boolean) => {
@@ -111,7 +119,7 @@
     };
     if (!live) {
       setConn(false);
-      return; // file:// page — the browser keeps answers, no chat channel.
+      return; // Unserved page: the browser keeps answers; no chat channel.
     }
 
     const threads = new Map<string, Thread>();
@@ -161,9 +169,17 @@
       host.append(wait);
     };
 
-    const renderPop = (id: string) => {
+    const renderPop = (id: string, preserve = false) => {
       const t = threads.get(id);
       if (!t) return;
+      // An agent reply arriving mid-typing rebuilds the same thread's card;
+      // keep that draft and caret. A different thread must start empty —
+      // restoring here would carry the previous thread's half-sentence.
+      // `preserve` comes from the caller, because showPop overwrites popFor
+      // before rendering, so popFor === id is already true for thread B.
+      const prev = preserve ? pop.querySelector('.qa-follow textarea') : null;
+      const draft = prev instanceof HTMLTextAreaElement ? prev.value : '';
+      const wasFocused = prev === document.activeElement;
       pop.replaceChildren();
       const head = document.createElement('div');
       head.className = 'qa-head';
@@ -185,38 +201,51 @@
       appendPending(pop, t);
       const follow = document.createElement('div');
       follow.className = 'qa-follow';
-      const fi = document.createElement('input');
-      fi.type = 'text';
+      const fi = document.createElement('textarea');
+      fi.rows = 1;
       fi.placeholder = W.follow;
       const fs = document.createElement('button');
       fs.type = 'button';
       fs.className = 'qa-send';
-      fs.textContent = W.send;
+      fs.innerHTML = sendLabel();
       const doFollow = async () => {
         const text = fi.value.trim();
         if (!text || !online) return;
         fi.value = '';
         t.items.push({ role: 'user', text });
-        renderPop(id);
+        renderPop(id, true);
         try {
           await post({ replyTo: Number(id), text });
         } catch {
           setConn(false);
           t.items.pop();
-          renderPop(id);
+          renderPop(id, true);
         }
       };
       fs.addEventListener('click', doFollow);
+      // Slack habit: Enter sends, Shift+Enter breaks a line, ⌘/Ctrl+Enter also sends.
       fi.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doFollow();
+        if (e.key !== 'Enter') return;
+        if (e.isComposing || e.keyCode === 229) return; // IME candidate confirm
+        if (e.shiftKey) return;
+        e.preventDefault();
+        doFollow();
       });
       follow.append(fi, fs);
       pop.append(follow);
+      if (prev) {
+        fi.value = draft;
+        if (wasFocused) {
+          fi.focus({ preventScroll: true });
+          fi.selectionStart = fi.selectionEnd = fi.value.length;
+        }
+      }
     };
 
     const showPop = (span: HTMLElement, id: string) => {
+      const wasFor = popFor;
       popFor = id;
-      renderPop(id);
+      renderPop(id, wasFor === id);
       const r = span.getBoundingClientRect();
       pop.style.top = `${r.bottom + scrollY + 10}px`;
       pop.style.left = `${Math.max(12, Math.min(r.left + scrollX - 40, scrollX + innerWidth - 400))}px`;
@@ -298,7 +327,7 @@
       t.items.push({ role: m.role, text: m.text });
       t.el?.classList.remove('pending');
       t.el?.classList.add('answered');
-      if (popFor === key) renderPop(key);
+      if (popFor === key) renderPop(key, true);
       updateBadge();
       if (list.classList.contains('show')) renderList();
     };
@@ -507,7 +536,10 @@
       }
     };
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') send();
+      if (e.key !== 'Enter') return;
+      if (e.isComposing || e.keyCode === 229) return; // IME candidate confirm
+      if (e.shiftKey || e.altKey) return;
+      send();
     });
     sendBtn?.addEventListener('click', send);
 
@@ -573,37 +605,33 @@
 
 <button
   type="button"
-  class="conn-chip fixed top-4 left-4 z-4 items-center gap-2 rounded-full border border-line bg-surface py-[5px] pr-3 pl-2.5 text-left font-ui text-[max(0.72em,14px)] tracking-normal text-muted cursor-pointer"
+  class="conn-chip fixed top-4 left-4 z-4 items-center rounded-full font-ui text-[max(0.72em,14px)] tracking-normal cursor-pointer"
   bind:this={chip}
   aria-label="Discussions"
 >
-  <i class="size-2 rounded-full bg-[color-mix(in_srgb,var(--color-muted)_55%,var(--color-bg))]" bind:this={dot}></i>
-  <span bind:this={label}></span>
-  <b class="min-w-[18px] rounded-full bg-accent-soft px-1.5 text-center font-semibold text-ink" bind:this={badge} hidden></b>
+  <i class="size-3 rounded-full" bind:this={dot}></i>
+  <span class="conn-label" bind:this={label}></span>
+  <b class="conn-badge" bind:this={badge} hidden></b>
 </button>
 <div
-  class="qa-list fixed top-[54px] left-4 z-5 w-[min(400px,calc(100vw-32px))] max-h-[min(70vh,560px)] flex-col overflow-hidden rounded-lg border border-line-2 bg-surface font-ui shadow-pop"
+  class="qa-list fixed top-[60px] left-4 z-5 w-[min(400px,calc(100vw-32px))] max-h-[min(70vh,560px)] flex-col overflow-hidden rounded-xl border border-line-2 bg-surface font-ui shadow-pop"
   bind:this={list}
 >
-  <div class="qa-head px-1 pt-1">
-    <span class="qa-title"></span>
+  <div class="qa-head m-0 border-b border-line px-4 pt-3 pb-2.5">
+    <span class="qa-title font-semibold text-ink"></span>
     <button type="button" class="qa-close" aria-label="Close discussion list">×</button>
   </div>
-  <div class="qa-body overflow-y-auto overflow-x-hidden px-2.5 pt-1 pb-2.5" bind:this={listBody}></div>
+  <div class="qa-body overflow-y-auto overflow-x-hidden px-2.5 pt-2 pb-2.5 [scrollbar-width:thin] [scrollbar-color:var(--color-line-2)_transparent]" bind:this={listBody}></div>
 </div>
 <div
-  class="qa-pop absolute z-6 w-[min(380px,calc(100vw-48px))] [&:not([hidden])]:flex flex-col rounded-lg border border-line-2 bg-surface px-4 pt-3.5 pb-3 font-ui text-[max(0.78em,14px)] leading-[1.5] shadow-pop"
+  class="qa-pop absolute z-6 w-[min(380px,calc(100vw-48px))] [&:not([hidden])]:flex flex-col rounded-xl border border-line-2 bg-surface px-4 pt-3.5 pb-3 font-ui text-[max(0.78em,14px)] leading-[1.5] shadow-pop"
   bind:this={pop}
   hidden
 ></div>
 <div
-  class="qa-bubble absolute z-6 items-center gap-1.5 rounded-lg border border-line-2 bg-surface py-[7px] pr-2.5 pl-3 font-ui shadow-bubble"
+  class="qa-bubble absolute z-6 items-center gap-1.5 rounded-xl border border-line-2 bg-surface py-[7px] pr-2.5 pl-3 font-ui shadow-bubble"
   bind:this={bubble}
 >
   <input type="text" bind:this={input} aria-label="Question for the agent" />
   <button type="button" class="qa-send" aria-label="Send question"></button>
-  <span
-    class="inline-flex h-5 min-w-5 items-center justify-center rounded border border-line-2 bg-sunk px-1 font-mono text-[12px] leading-none text-ink-2 select-none"
-    aria-hidden="true">↵</span
-  >
 </div>

@@ -106,6 +106,38 @@
     font-kerning: normal;
   }
 
+  /* Every scrollbar on the page shares one look: thin rounded line-color
+     thumb over a transparent track — the page scrollbar included. */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-2) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--color-line-2);
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-2);
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   [lang]:not(:root) {
     font-family: var(--body);
     letter-spacing: var(--ls);
@@ -193,10 +225,6 @@
     font-weight: 600;
   }
 
-  :is(:lang(zh), :lang(ja)) :is(p, li, td, dd) > strong {
-    font-family: var(--ui);
-  }
-
   a {
     color: var(--color-accent);
     text-underline-offset: 0.2em;
@@ -232,6 +260,9 @@
     padding: 14px 18px;
     border-radius: 10px;
     overflow-x: auto;
+    /* scrollbar-width is not inherited from html — every natively scrolling
+       region opts in itself so all bars share the thin themed look. */
+    scrollbar-width: thin;
   }
 
   pre code {
@@ -242,6 +273,20 @@
 
   td > time {
     white-space: nowrap;
+  }
+
+  /* Content sections adopt the page grid via subgrid, so blocks default to
+     the reading column while `wide` blocks can break out across all three
+     tracks without escaping their section. */
+  .page > section:not(.summary) {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+
+  .page > section:not(.summary) > * {
+    grid-column: 2;
+    min-width: 0;
   }
 
   [id] {
@@ -287,6 +332,14 @@
     tr {
       break-inside: avoid;
     }
+
+    /* Promoted figures live in a Scroller whose .box sets max-width:none
+       !important; on paper there is no scrolling, so fit the svg to the
+       printable width instead of clipping it. */
+    .scroller .box svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
   }
 }
 
@@ -297,6 +350,56 @@
  * theme tokens above.
  */
 @layer components {
+  /* Diagrams rendered by tools/diagram.ts (Pele) arrive as report content
+     with Pele's root class; mapping its theme variables onto the design
+     tokens makes them follow the page palette with no baked colors. */
+  .pele {
+    --pele-bg: var(--color-bg);
+    --pele-fg: var(--color-ink);
+    --pele-muted: var(--color-muted);
+    --pele-line: var(--color-ink-2);
+    --pele-surface: var(--color-surface);
+    --pele-surface-alt: var(--color-sunk);
+    --pele-border: var(--color-line-2);
+    --pele-accent: var(--color-accent);
+    --pele-critical: var(--color-risk);
+    --pele-radius: 8px;
+    --pele-font: var(--ui);
+    --pele-font-mono: var(--font-mono);
+    /* Categorical series for pie/xychart slices and branches, kept inside
+       the token hues; order = accent first, then status hues as distinct
+       categories (chart context, not status semantics). */
+    --pele-series-1: var(--color-accent);
+    --pele-series-2: var(--color-ok);
+    --pele-series-3: var(--color-warn);
+    --pele-series-4: var(--color-risk);
+    --pele-series-5: var(--color-ink-2);
+    --pele-series-6: var(--color-muted);
+    --pele-series-7: var(--color-mark);
+    --pele-series-8: var(--color-line-2);
+  }
+
+  /* Apple-style continuous corners: form controls and surfaces with a
+     modest radius opt into the squircle. :where() keeps specificity at
+     zero so any explicit corner-shape wins; browsers without support
+     fall back to circular. */
+  :where(
+    [class*="rounded"]:not([class*="rounded-full"]),
+    .qa-send,
+    .qa-row,
+    .seg span,
+    input[type="text"],
+    textarea
+  ) {
+    corner-shape: squircle;
+  }
+
+  /* Stadiums stay circular-ended and are reserved for chip-like marks:
+     TOC entries, the pick chip, the status pill and its count. */
+  :where([class*="rounded-full"], .chip, .conn-chip, .conn-badge) {
+    corner-shape: round;
+  }
+
   /* Status chips are embedded in report.json content strings, so they are
      styled by class globally rather than by utilities in markup. */
   .chip {
@@ -338,12 +441,17 @@
     background-color: color-mix(in srgb, var(--color-mark) 75%, transparent);
   }
 
-  /* A passage that has been asked about: soft yellow while waiting for the
-     reply, solid accent underline once answered. Hover deepens the tint. */
+  /* A passage that has been asked about: a rounded chip of soft yellow behind
+     the words (cloned per line), dashed underline while waiting for the reply,
+     solid accent underline once answered. Hover deepens the tint. */
   .qa-mark {
     cursor: help;
-    border-radius: 2px;
+    border-radius: 6px;
     background: var(--color-mark-soft);
+    padding: 1px 5px;
+    margin-inline: -5px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
     text-decoration: underline dashed color-mix(in srgb, var(--color-warn) 55%, transparent);
     text-decoration-skip-ink: none;
     text-underline-offset: 3px;
@@ -357,13 +465,83 @@
     text-decoration: underline solid var(--color-accent);
   }
 
-  /* Visibility pairs toggled by classList in Chat.svelte. */
+  /* Visibility pairs toggled by classList in Chat.svelte. At rest the chip is
+     a bare status dot; hovering or focusing it grows a pill with the status
+     text and the unread count. */
   .conn-chip {
     display: none;
+    align-items: center;
+    height: 28px;
+    padding: 0 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-muted);
+    text-align: left;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      padding 0.25s ease;
   }
 
   .conn-chip.show {
     display: inline-flex;
+  }
+
+  .conn-chip i {
+    position: relative;
+    background: color-mix(in srgb, var(--color-muted) 55%, var(--color-bg));
+    transition:
+      background-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .conn-chip .conn-label,
+  .conn-chip .conn-badge {
+    max-width: 0;
+    margin: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    line-height: 1;
+    font-size: max(0.66em, 12.5px);
+    transition:
+      max-width 0.25s ease,
+      margin 0.25s ease,
+      opacity 0.2s ease 0.05s;
+  }
+
+  .conn-chip .conn-badge {
+    min-width: 0;
+    border-radius: 999px;
+    background: var(--color-accent-soft);
+    padding-block: 1px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .conn-chip:hover,
+  .conn-chip:focus-visible {
+    border-color: var(--color-line);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-dock);
+    padding-right: 12px;
+  }
+
+  .conn-chip:hover .conn-label,
+  .conn-chip:focus-visible .conn-label {
+    max-width: 220px;
+    margin-left: 8px;
+    opacity: 1;
+  }
+
+  .conn-chip:hover .conn-badge:not([hidden]),
+  .conn-chip:focus-visible .conn-badge:not([hidden]) {
+    max-width: 36px;
+    margin-left: 6px;
+    opacity: 1;
+    padding-inline: 6px;
   }
 
   .qa-list {
@@ -376,26 +554,32 @@
 
   .qa-bubble {
     display: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .qa-bubble:hover {
+    border-color: color-mix(in srgb, var(--color-ink) 30%, var(--color-line-2));
+  }
+
+  .qa-bubble:focus-within {
+    border-color: var(--color-accent);
   }
 
   .qa-bubble.show {
     display: flex;
   }
 
-  @keyframes conn-pulse {
-    50% {
-      opacity: 0.35;
-    }
+  .conn-chip,
+  .conn-chip i {
+    corner-shape: round;
   }
 
   .conn-chip.on {
     color: var(--color-ok);
-    border-color: color-mix(in srgb, var(--color-ok) 32%, var(--color-line));
   }
 
   .conn-chip.on i {
     background: var(--color-ok);
-    animation: conn-pulse 2.4s ease-in-out infinite;
   }
 
   @keyframes qa-pulse {
@@ -413,16 +597,21 @@
   }
 
   .qa-close {
+    display: grid;
+    place-content: center;
+    width: 26px;
+    height: 26px;
     border: 0;
+    border-radius: 6px;
     background: none;
     color: var(--color-muted);
-    font-size: 1.1em;
+    font-size: 18px;
     line-height: 1;
     cursor: pointer;
-    padding: 0 2px;
   }
 
   .qa-close:hover {
+    background: var(--color-sunk);
     color: var(--color-ink);
   }
 
@@ -436,6 +625,7 @@
     border-radius: 12px;
     font-size: max(0.86em, 14px);
     line-height: 1.55;
+    white-space: pre-wrap;
   }
 
   .qa-item .who {
@@ -488,7 +678,7 @@
     display: block;
     width: 100%;
     margin: 6px 0;
-    padding: 8px 10px;
+    padding: 8px 12px;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     background: none;
@@ -519,12 +709,16 @@
     font-size: max(0.78em, 14px);
   }
 
+  .qa-row:not(.pending) .s {
+    color: var(--color-ok);
+  }
+
   .qa-row.pending .s {
     color: var(--color-warn);
   }
 
   .qa-empty {
-    padding: 10px;
+    padding: 16px;
     color: var(--color-muted);
   }
 
@@ -537,15 +731,55 @@
   .qa-send {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 6px 10px;
+    line-height: 1.45;
     border: 1px solid var(--color-accent);
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     background: var(--color-accent);
     color: #fff;
     font-family: var(--ui);
-    font-size: max(0.72em, 14px);
+    font-size: max(0.78em, 14px);
     letter-spacing: 0;
     cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.1s ease;
+  }
+
+  .qa-send:not(:disabled):hover {
+    background: color-mix(in srgb, var(--color-accent) 88%, #000);
+    box-shadow: var(--shadow-dock);
+  }
+
+  .qa-send:not(:disabled):active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+
+  /* Keyboard hint inside the button: modifier glyph plus a drawn enter arrow,
+     flex-centered so no font baseline can pull them apart. */
+  .qa-kbd {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 8px;
+    padding: 4px 8px;
+    border-radius: 7px;
+    background: color-mix(in srgb, #fff 22%, transparent);
+    font-family: var(--font-mono);
+    font-size: max(0.72em, 11px);
+    line-height: 1;
+  }
+
+  .qa-kbd svg {
+    display: block;
+  }
+
+  /* The enter glyph's mass sits low (arrowhead below a thin stem); lift it
+     half a pixel so its optical center matches the modifier's. */
+  .qa-kbd svg:last-child {
+    transform: translateY(-0.5px);
   }
 
   .qa-send:disabled {
@@ -560,6 +794,12 @@
     color: var(--color-ink);
     font: inherit;
     font-size: max(0.78em, 14px);
+    line-height: 1.45;
+  }
+
+  .qa-bubble input::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
   }
 
   .qa-bubble input:focus {
@@ -568,23 +808,53 @@
 
   .qa-follow {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 6px;
     margin-top: 10px;
   }
 
-  .qa-follow input {
-    flex: 1;
-    min-width: 0;
+  /* Own row once the text outgrows one line; hugs the right edge. */
+  .qa-follow .qa-send {
+    margin-left: auto;
+  }
+
+  /* Grows to the right with the text; once the text no longer fits one line
+     the field takes the full row and the send button drops onto its own. */
+  .qa-follow textarea {
+    flex: 1 1 auto;
+    min-width: 16ch;
+    max-width: 100%;
     padding: 6px 10px;
     border: 1px solid var(--color-line-2);
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     background: var(--color-surface);
     color: var(--color-ink);
     font: inherit;
+    line-height: 1.45;
+    resize: none;
+    overflow: hidden;
+    field-sizing: content;
+    max-height: 9em;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
-  .qa-follow input:focus {
+  .qa-follow textarea::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
+
+  /* Shared input micro-motion: hover deepens the border, focus swaps to the
+     accent with a soft ring — same recipe on every text field in the page. */
+  .qa-follow textarea:hover {
+    border-color: color-mix(in srgb, var(--color-ink) 30%, var(--color-line-2));
+  }
+
+  .qa-follow textarea:focus {
     outline: none;
     border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
   }
 }

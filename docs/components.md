@@ -12,6 +12,7 @@ Contents:
 - [Reading components](#reading-components)
 - [Data components](#data-components)
 - [Diagrams and images](#diagrams-and-images)
+- [Style galleries](#style-galleries)
 - [Review components](#review-components)
 - [Read-through checklist](#read-through-checklist)
 
@@ -19,35 +20,40 @@ Contents:
 
 Use one component per idea. If two components could show the same content, pick the first match in this table.
 
-| The content is…                                                                                      | Use                                      |
-| ---------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| The result the reader must take away                                                                 | Summary box                              |
-| A warning, risk, or decision the reader must notice                                                  | Callout (`warn`, `risk`, `ok`, plain)    |
-| 2–4 numbers that carry the main finding                                                              | Figures row                              |
-| A few facts about one thing (owner, version, date)                                                   | Key-value list                           |
-| Records with the same fields                                                                         | Table                                    |
-| One measure across a few items                                                                       | Bars                                     |
-| A simple trend over time                                                                             | Inline SVG (chart)                       |
-| A branching process, a lifecycle, an interaction order, a data model, or a structure with many parts | Inline SVG `figure` block (hand-written) |
-| Options the reader weighs against each other                                                         | Compare cards                            |
-| An ordered procedure                                                                                 | Steps                                    |
-| Text quoted from another language                                                                    | Pair                                     |
-| Evidence most readers skip: logs, raw output                                                         | Details                                  |
-| A status word inside a sentence or table cell                                                        | Chip                                     |
-| A question for the user                                                                              | Review components                        |
-| Anything else                                                                                        | Paragraphs and lists; they need no box   |
+| The content is…                                                                | Use                                                                   |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| The result the reader must take away                                           | Summary box                                                           |
+| A warning, risk, or decision the reader must notice                            | Callout (`warn`, `risk`, `ok`, plain)                                 |
+| 2–4 numbers that carry the main finding                                        | Figures row                                                           |
+| A few facts about one thing (owner, version, date)                             | Key-value list                                                        |
+| Records with the same fields                                                   | Table                                                                 |
+| One measure across a few items                                                 | Bars                                                                  |
+| A trend or data plot                                                           | `xychart-beta` Mermaid via `tools/diagram.ts`, or generated chart SVG |
+| A share of a whole                                                             | `pie` Mermaid via `tools/diagram.ts`                                  |
+| An interaction order between parties                                           | `sequenceDiagram` via `tools/diagram.ts`                              |
+| A branching process, a lifecycle, a data model, or a structure with many parts | Mermaid source through `tools/diagram.ts`                             |
+| Style candidates the user must pick from                                       | `swatch` block plus a review question                                 |
+| Options the reader weighs against each other                                   | Compare cards                                                         |
+| An ordered procedure                                                           | Steps                                                                 |
+| Text quoted from another language                                              | Pair                                                                  |
+| Evidence most readers skip: logs, raw output                                   | Details                                                               |
+| A status word inside a sentence or table cell                                  | Chip                                                                  |
+| A question for the user                                                        | Review components                                                     |
+| Anything else                                                                  | Paragraphs and lists; they need no box                                |
 
 Most sections need only headings, paragraphs, and at most one component. A page where every block sits in a box reads as noise.
 
 ## Page frame
 
-The renderer builds the frame from the top-level `report.json` fields: `kicker`, `title`, and `meta` become the masthead; `summary` becomes the summary box; each entry of `sections` becomes one `h2` plus its blocks. With five or more sections the renderer adds the table of contents and links each heading — give a section an `id` when you want a stable anchor.
+The renderer builds the frame from the top-level `report.json` fields: `kicker`, `title`, and `meta` become the masthead; `summary` becomes the summary box; each entry of `sections` becomes one `h2` plus its blocks.
 
-Set `wide: true` on a compare grid, a table with many columns, or a large figure to let it break out to 1080 px. The contrast is deliberate: text stays in the narrow reading column, and the one thing to look at side by side gets the full width. Use it on a few blocks per page at most; if everything is wide, nothing stands out.
+Body text stays inside the reading measure — the line length readers scan without losing their place. Figures do not need `wide`: they start inside the measure and break out to about 1.35× automatically only when their intrinsic width overflows the column ("wide by need, not by default"). For other blocks set `wide: true` explicitly — a compare grid or a table with many columns — to let it break out to about 1.35× the measure: still anchored to the column, wide enough for side-by-side reading. Anything wider than the breakout scrolls horizontally inside an in-page slider that stays visible for as long as the region is scrollable (draggable, never displacing page elements). Use `wide` on a few blocks per page at most; if everything is wide, nothing stands out.
+
+With five or more sections the renderer adds a table of contents behind a bare arrow fixed to the left edge, always vertically centered: hovering the arrow lifts it with a small shadow, clicking slides in a transparent panel clear of the arrow — plain semi-transparent entries with no background, the one being read carrying a soft gray pill. The panel follows the reading position and smooth-scrolls on click; with review questions present it ends with a link to them. Give a section an `id` when you want a stable anchor.
 
 Write all visible text in the page language; keep `id`, `name`, and `value` fields as ASCII IDs.
 
-On served pages the renderer also shows a connection chip in the top left: while the server is reachable the reader can select any text and send the agent a question, the answer shows as a hover card on the quoted passage, and every asked passage keeps a soft yellow tint with an underline — dashed while the reply is pending, solid accent once answered.
+On served pages the renderer also shows a status dot in the top left — gray for local mode, a steady green while the server is reachable; hovering the dot grows a pill with the status text and the number of answered discussions. While the server is reachable the reader can select any text and send the agent a question, the answer shows as a hover card on the quoted passage, and every asked passage keeps a rounded soft-yellow highlight — dashed underline while the reply is pending, solid accent once answered.
 
 ## Reading components
 
@@ -171,7 +177,7 @@ Bars, for one measure across up to about 12 items. Set each `--v` to value ÷ ax
 </div>
 ```
 
-Compare cards. Mark the recommended option with `pick` and a chip; keep pros and cons to three lines each:
+Compare cards. All cards are white with a solid hairline border; mark the recommended one with `pick` and a chip — it differs only by that chip and a faint accent-tinted dashed border. Keep pros and cons to three lines each:
 
 ```html
 <div class="compare wide">
@@ -191,40 +197,51 @@ Compare cards. Mark the recommended option with `pick` and a chip; keep pros and
 
 ## Diagrams and images
 
-Draw every chart and structured diagram — flows, lifecycles, interaction orders, data models, file trees — as hand-written inline SVG in a `figure` block. A diagram adds no JavaScript of its own, and it follows the report palette.
+Every chart and structured diagram — flows, lifecycles, interaction orders, data models, file trees — lands as inline SVG in a `figure` block. Structural diagrams are authored in Mermaid and rendered by the kit's tool; data plots arrive as generated SVG from a chart library (pygal or similar). Either way a diagram adds no JavaScript of its own: the page embeds static SVG, and colors come from the page theme, not from the file.
 
-- Set `viewBox` and no fixed `width`/`height`, so the figure scales.
-- Use `currentColor` and the template's CSS variables (`var(--color-accent)`, `var(--color-line-2)`, `var(--color-muted)`) for strokes and fills. Use at most one accent color plus gray.
-- Label lines and boxes directly; add a legend only when direct labels do not fit.
-- Bars and areas start at zero. Say the unit in the caption.
-- Text inside SVG uses `font-family="inherit"` and a `font-size` of at least 14.
+For a diagram, write the Mermaid source and run the tool, then put the resulting SVG in the `figure` block's `svg` field:
 
-```html
-<figure>
-  <svg
-    viewBox="0 0 520 90"
-    role="img"
-    aria-label="Request path: browser to cache to origin"
-    font-family="inherit"
-    font-size="15"
-  >
-    <g fill="none" stroke="var(--color-line-2)" stroke-width="1.5">
-      <rect x="1" y="20" width="120" height="48" rx="8" />
-      <rect x="200" y="20" width="120" height="48" rx="8" />
-      <rect x="399" y="20" width="120" height="48" rx="8" />
-      <path d="M121 44h79M320 44h79" stroke="var(--color-accent)" />
-    </g>
-    <g fill="currentColor" text-anchor="middle">
-      <text x="61" y="49">Browser</text>
-      <text x="260" y="49">Cache</text>
-      <text x="459" y="49">Origin</text>
-    </g>
-  </svg>
-  <figcaption>On a cache hit, the request never reaches the origin.</figcaption>
-</figure>
+```
+flowchart TD
+    A[Christmas] -->|Get money| B[Go shopping]
+    B --> C{Let me think}
+    C -->|One| D[Laptop]
+    C -->|Two| E[iPhone]
+    C -->|Three| F[Car]
 ```
 
+```bash
+node tools/diagram.ts flow.mmd flow.svg   # Mermaid → themed SVG (Pele)
+```
+
+The output carries Pele's `.pele` root class; the renderer maps its theme variables onto the design tokens, so node fills, borders, edges, and text follow the page palette automatically — including the `lang`-specific font. Pie slices, chart series, and colored branches draw from `--pele-series-1`…`8`, mapped to the token hues. The same pipeline covers `pie` (share of a whole), `xychart-beta` (trends), and `sequenceDiagram` (interaction orders) — only the source changes. The example below is the mermaid landing-page flowchart: labeled edges, a decision node, three branches.
+
+Rules that hold for every figure, generated or hand-written:
+
+- The SVG must scale with the column: a `viewBox` plus `max-width: 100%` (tool output ships both — it keeps width/height hints but caps itself with an inline style).
+- Text renders at 14 px or larger (the tool uses 17 px).
+- Label lines and boxes directly; add a legend only when direct labels do not fit.
+- Bars and areas start at zero. Say the unit in the caption.
+- Avoid Mermaid `style`/`classDef` color overrides: they bake fixed hex values into the SVG and ignore the page theme. Shape and class hooks remain useful for structure; only colors are better left to the tokens.
+
 Use a raster image only for something that cannot be drawn: a screenshot, a photo. Resize and compress it first (for example `cwebp -q 75 -resize 1600 0 in.png -o out.webp`), then embed it as a data URI or keep it as a file next to `index.html` and reference it with a relative path. A served directory serves sibling files; a plain report must embed.
+
+## Style galleries
+
+When the decision is "pick one of these looks", show the candidates instead of describing them: a `swatch` block renders each item's `html` — a small self-contained fragment like a button with its hover style — in its own cell, with an optional short label underneath.
+
+```json
+{
+  "type": "swatch",
+  "wide": true,
+  "items": [
+    { "label": "A · solid", "html": "<button type=\"button\" style=\"…\">Confirm</button>" },
+    { "label": "D · pill", "html": "<button type=\"button\" style=\"…\">Confirm</button>" }
+  ]
+}
+```
+
+This is the one block that takes raw HTML by design; keep fragments small, token-based (`var(--color-accent)` and friends), and free of scripts. Reference tokens rather than hex values so candidates follow the theme, and pair the gallery with a review question whose options name the candidates.
 
 ## Review components
 
@@ -253,9 +270,9 @@ Single choice, as option cards:
 
 Multiple choice: the same markup with `type="checkbox"` and one shared `name`. The answer `value` becomes an array.
 
-Verdict per item, for reviewing a list: one `fieldset.item` per item inside a `fieldset.q`. The pill row sits to the right of the item name and hint, so keep each pill label to about four CJK characters or two English words. Offer only the verdicts that make sense for that item: an item with nothing to merge into gets no "Merge" pill.
+Verdict per item, for reviewing a list: one `fieldset.item` per item inside a `fieldset.q`. The verdict row sits to the right of the item name and hint, so keep each label to about four CJK characters or two English words. Offer only the verdicts that make sense for that item: an item with nothing to merge into gets no "Merge" verdict.
 
-Tone classes color each pill by what the choice does: `risk` for a destructive or irreversible action (delete, reject), `ok` for the safe or unchanged outcome (keep, approve), `warn` for a deferral or partial answer (later, unsure). A pill without a class gets a neutral dot and the accent color when selected. Give the same verdict the same tone on every item, so a color means one thing across the page:
+Tone classes give each verdict a meaning glyph and color by what the choice does: `ok` a check for the safe or unchanged outcome (keep, approve), `risk` a cross for a destructive or irreversible action (delete, reject), `warn` a clock for a deferral or partial answer (later, unsure). A verdict without a tone falls back to a plain dot in the accent color. Give the same verdict the same tone on every item, so a glyph and color mean one thing across the page:
 
 ```html
 <fieldset class="q">

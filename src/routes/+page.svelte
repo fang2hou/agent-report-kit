@@ -4,6 +4,7 @@
   import Block from '#lib/components/Block.svelte';
   import Review from '#lib/components/Review.svelte';
   import Chat from '#lib/components/Chat.svelte';
+  import Toc from '#lib/components/Toc.svelte';
 
   const injected = JSON.parse(
     (document.getElementById('report-data') as HTMLScriptElement).textContent ?? 'null'
@@ -11,8 +12,13 @@
   const report = injected ?? (raw as unknown as Report);
 
   const FALLBACK_STRINGS = { summary: 'Conclusion', review: 'To decide' };
+  // The review section's anchor must never equal a report section id — the
+  // TOC loop keys on it and a duplicate crashes the keyed each.
+  const takenIds = new Set(report.sections.map((s) => s.id).filter(Boolean));
+  let reviewId = 'review';
+  for (let n = 2; takenIds.has(reviewId); n++) reviewId = `review-${n}`;
   const UI_STRINGS: Record<string, { summary: string; review: string }> = {
-    'zh-cn': { summary: '结论', review: '待决问题' },
+    'zh-cn': { summary: '结论', review: '待解决问题' },
     ja: { summary: '結論', review: '確認事項' }
   };
   const t =
@@ -21,6 +27,9 @@
 
   const sectionId = (i: number) => `sec-${i + 1}`;
   const showToc = report.sections.length >= 5;
+  // A page ending in the submit dock: the dock's own padding is the bottom
+  // spacing, so the reading margin would open a gap once the dock settles.
+  const paddingBottom = report.review && report.review.questions.length > 0 ? 'pb-2' : 'pb-30';
 
   document.documentElement.lang = report.lang;
 
@@ -55,7 +64,7 @@
 
 <svelte:window onbeforeprint={openDetailsForPrint}></svelte:window>
 
-<main class="page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pb-30 pt-14">
+<main class={`page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pt-14 ${paddingBottom}`}>
   <header class="masthead mb-9 min-w-0 col-start-2">
     {#if report.kicker}
       <p class="kicker m-0 mb-[0.6em] font-ui text-[0.86em] tracking-normal text-muted">
@@ -78,17 +87,16 @@
   </section>
 
   {#if showToc}
-    <nav class="min-w-0 col-start-2">
-      <ol class="toc list-decimal columns-[2_16em] gap-[2em] pl-[1.2em] font-ui text-[0.92em]">
-        {#each report.sections as section, i (section.id ?? section)}
-          <li><a href="#{section.id ?? sectionId(i)}">{section.heading}</a></li>
-        {/each}
-      </ol>
-    </nav>
+    <Toc
+      sections={[
+        ...report.sections.map((section, i) => ({ id: section.id ?? sectionId(i), heading: section.heading })),
+        ...(report.review && report.review.questions.length > 0 ? [{ id: reviewId, heading: t.review }] : [])
+      ]}
+    />
   {/if}
 
   {#each report.sections as section, i (section.id ?? section)}
-    <section id={section.id ?? sectionId(i)} class="min-w-0 col-start-2">
+    <section id={section.id ?? sectionId(i)}>
       <h2>{section.heading}</h2>
       {#each section.blocks as block (block.id ?? block)}
         <Block {block} />
@@ -97,7 +105,7 @@
   {/each}
 
   {#if report.review && report.review.questions.length > 0}
-    <section class="min-w-0 col-start-2">
+    <section id={reviewId}>
       <h2>{t.review}</h2>
       <Review review={report.review} title={report.title} />
     </section>

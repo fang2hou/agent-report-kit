@@ -22,7 +22,7 @@ Each language sets `--ui` and `--body` on `:lang(...)`: `--ui` for headings, tab
 | en (and default) | IBM Plex Sans → IBM Plex Sans JP → system sans                          | Charter → Iowan Old Style → Georgia                               | Charter is a screen-friendly serif shipped with macOS. Plex Sans JP carries the same Latin glyphs when Plex Sans is missing. |
 | code (all)       | JetBrainsMono Nerd Font → JetBrains Mono → IBM Plex Mono → ui-monospace | —                                                                 | The user's code font.                                                                                                        |
 
-In Chinese and Japanese prose, `strong` switches to the `--ui` font, following the CJK convention of setting emphasis in Gothic/Hei inside Mincho/Song text. It also avoids fake bold: several Song fonts ship only one weight.
+Emphasis never switches font family inside prose: `strong` stays in `--body` everywhere. Mixing a sans face into Song-style body text offsets adjacent baselines (the reader sees neighboring characters sit at different heights), so one family per paragraph wins over the Gothic-emphasis convention. Single-weight Song faces get the 600 weight synthesized by the browser — same family, same baseline.
 
 Family names must match what the system installed, not the marketing name. Check with `fc-list : family | rg -i "<name>"`. Variable-font installs often add a suffix, such as `Source Han Sans SC VF`.
 
@@ -74,15 +74,15 @@ Do not add colors for decoration. If a chart needs a second series, use `--color
 
 ## Corners
 
-Large surfaces (cards, the summary, question cards, the submit bar) use 14 px corners, upgraded to a 20 px squircle where `corner-shape` is supported. Small controls (options, buttons, inputs) use plain 8 px corners. A rounded element nested in another keeps concentric corners: inner radius = outer radius − the gap between them (count the border). When the gap is larger than the outer radius, use the small 8 px or 4 px radius.
+Three tiers. Large surfaces (cards, the summary, question cards, the submit bar) use 14 px corners, upgraded to a 20 px squircle where `corner-shape` is supported. Form controls — every text field, single- or multi-line, and every button — share 10 px (12 px on the taller option rows), squircle where supported. Full-round stadiums are reserved for chip-like marks (TOC entries, the pick chip, the status pill) and are never used on form controls. A rounded element nested in another keeps concentric corners: inner radius = outer radius − the gap between them (count the border).
 
 ## Controls and scrollbars
 
-Radio buttons and checkboxes are drawn by the renderer at 1.15 em, so they match the option text instead of the small browser default. The page scrollbar is the browser default; do not restyle it per page. Inner scroll areas (wide tables, code blocks) use the browser's thin scrollbar.
+Radio buttons and checkboxes are drawn by the renderer at 1.15 em, so they match the option text instead of the small browser default. Every scrollbar on the page — the page itself included — is themed the same way: a thin rounded thumb in the line color over a transparent track. Horizontal scroll regions (wide tables, wide figures) hide the native bar and draw the in-page slider instead, which stays visible whenever the region can scroll.
 
 ## Adding a language
 
 1. Add a `:lang(xx)` block next to the others with `--ui`, `--body`, `--fs`, `--lh`, `--ls`, and `--measure`.
 2. Choose fonts that are installed (`fc-list`), with a system fallback last.
-3. Adding a language now means changing the renderer: add the `STRINGS` entry in agent-report-kit (`Review.svelte`, `Chat.svelte`, `+page.svelte`) and the `:lang` font block in `src/app.css`, then rebuild.
+3. Adding a language now means changing the renderer: add the `STRINGS` entry in agent-report-kit (`Review.svelte`, `Chat.svelte`, `Toc.svelte`, `+page.svelte`) and the `:lang` font block in `src/app.css`, then rebuild.
 4. Render a sample paragraph with mixed Latin text and digits, and check line breaks and spacing in a screenshot.

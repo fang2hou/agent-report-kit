@@ -2,6 +2,7 @@
   import type { Block, Review } from '#lib/schema';
   import Block_ from '#lib/components/Block.svelte';
   import Review_ from '#lib/components/Review.svelte';
+  import flowZh from '#lib/diagrams/branching-flow.zh.svg?raw';
 
   document.documentElement.lang = 'zh-CN';
 
@@ -71,27 +72,28 @@
     {
       type: 'figures',
       items: [
-        { value: '16 种', label: '块类型' },
+        { value: '15 种', label: '块类型' },
         { value: '3 类', label: '审阅问题' },
-        { value: '1 个', label: 'index.html' }
+        { value: '4 类', label: 'Mermaid 图' }
       ]
     },
     {
       type: 'table',
-      columns: ['组件', '行数', '判定', '备注'],
+      columns: ['组件', '行数', '状态', '备注'],
       num: [1],
       rows: [
-        ['表格（本表）', '1', '<span class="chip ok">对齐</span>', 'num 列右对齐'],
-        ['数字行', '1', '<span class="chip ok">对齐</span>', '<time>2026-10-18</time>'],
-        ['条形图', '1', '<span class="chip warn">待验</span>', '值由 max 归一']
+        ['表格（本表）', '1', '<span class="chip ok">支持</span>', 'num 列右对齐'],
+        ['数字行', '1', '<span class="chip ok">支持</span>', '<time>2026-10-18</time>'],
+        ['条形图', '1', '<span class="chip warn">演示</span>', '值由 max 归一']
       ]
     },
     {
       type: 'bars',
       items: [
-        { label: 'app.css（token 单源）', value: 590, display: '590 行' },
-        { label: 'Block.svelte', value: 183, display: '183 行' },
-        { label: 'Review.svelte', value: 598, display: '598 行' }
+        { label: '阅读类（p/列表/提示/卡片等）', value: 9, display: '9 种' },
+        { label: '数据类（figures/table/bars）', value: 3, display: '3 种' },
+        { label: '图示类（figure/swatch）', value: 2, display: '2 种' },
+        { label: '权衡类（compare）', value: 1, display: '1 种' }
       ]
     }
   ];
@@ -99,8 +101,8 @@
   const chartBlocks: Block[] = [
     {
       type: 'figure',
-      svg: '<svg viewBox="0 0 520 90" role="img" aria-label="渲染管线" font-family="inherit" font-size="15"><g fill="none" stroke="var(--color-line-2)" stroke-width="1.5"><rect x="1" y="20" width="120" height="48" rx="8"/><rect x="200" y="20" width="120" height="48" rx="8"/><rect x="399" y="20" width="120" height="48" rx="8"/><path d="M121 44h79M320 44h79" stroke="var(--color-accent)"/></g><g fill="currentColor" text-anchor="middle"><text x="61" y="49">report.json</text><text x="260" y="49">组件库</text><text x="459" y="49">index.html</text></g></svg>',
-      caption: 'inline SVG：viewBox 缩放，currentColor + 令牌配色。'
+      svg: flowZh,
+      caption: 'inline SVG（tools/diagram.ts 经 Pele 渲染）：.pele 变量映射到页面令牌，viewBox 缩放。'
     }
   ];
 
@@ -129,6 +131,32 @@
           text: 'badge 与 pick 独立，可组合使用。',
           pros: ['可表达非二元的倾向']
         }
+      ]
+    }
+  ];
+
+  const wideTable: Block[] = [
+    {
+      type: 'table',
+      wide: true,
+      columns: ['组件', '源文件', '职责', '渲染时机'],
+      rows: [
+        ['Block', '<code>src/lib/components/Block.svelte</code>', '全部块类型的渲染', 'SSR'],
+        ['Review', '<code>src/lib/components/Review.svelte</code>', '审阅表单与提交', 'SSR + 水合'],
+        ['Scroller', '<code>src/lib/components/Scroller.svelte</code>', '站内横向滚动条', 'SSR + 水合']
+      ]
+    }
+  ];
+
+  const swatchBlocks: Block[] = [
+    {
+      type: 'swatch',
+      wide: true,
+      items: [
+        { label: 'A · 实底', html: '<button type="button" style="border:0;border-radius:8px;background:var(--color-accent);color:#fff;padding:8px 18px;font:600 14px var(--ui);cursor:pointer">确认</button>' },
+        { label: 'B · 描边', html: '<button type="button" style="border:1.5px solid var(--color-accent);border-radius:8px;background:transparent;color:var(--color-accent);padding:7px 17px;font:600 14px var(--ui);cursor:pointer">确认</button>' },
+        { label: 'D · 胶囊', html: '<button type="button" style="border:0;border-radius:999px;background:var(--color-accent);color:#fff;padding:8px 20px;font:600 14px var(--ui);cursor:pointer">确认</button>' },
+        { label: 'J · 墨色', html: '<button type="button" style="border:0;border-radius:8px;background:var(--color-ink);color:#fff;padding:8px 18px;font:600 14px var(--ui);cursor:pointer">确认</button>' }
       ]
     }
   ];
@@ -205,14 +233,14 @@
   <title>agent-report-kit 组件预览</title>
 </svelte:head>
 
-<main class="page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pb-30 pt-14">
+<main class="page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pb-2 pt-14">
   <header class="masthead mb-9 min-w-0 col-start-2">
     <p class="kicker m-0 mb-[0.6em] font-ui text-[0.86em] tracking-normal text-muted">agent-report-kit · styleguide</p>
     <h1>组件与配色预览</h1>
     <p class="meta m-0 font-ui text-[0.86em] tracking-normal text-muted">全部组件由 agent-report-kit 渲染；色值运行时读取令牌真值。</p>
   </header>
 
-  <section id="palette" class="min-w-0 col-start-2">
+  <section id="palette">
     <h2>调色板</h2>
     <div class="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-x-4 gap-y-3.5 my-[1.2em] font-ui">
       {#each TOKENS as tok (tok)}
@@ -231,35 +259,49 @@
     </div>
   </section>
 
-  <section class="min-w-0 col-start-2">
+  <section >
     <h2>阅读组件</h2>
     {#each readingBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section class="min-w-0 col-start-2">
+  <section >
     <h2>数据组件</h2>
     {#each dataBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section class="min-w-0 col-start-2">
+  <section >
     <h2>图表</h2>
     {#each chartBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section class="min-w-0 col-start-2">
+  <section >
     <h2>权衡与 badge</h2>
     {#each compareBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section class="min-w-0 col-start-2">
+  <section >
+    <h2>宽幅表格</h2>
+    {#each wideTable as block (block.id ?? block)}
+      <Block_ {block} />
+    {/each}
+  </section>
+
+  <section >
+    <h2>样式画廊</h2>
+    {#each swatchBlocks as block (block.id ?? block)}
+      <Block_ {block} />
+    {/each}
+  </section>
+
+  <section >
     <h2>审阅表单</h2>
     <Review_ review={demoReview} title="agent-report-kit 组件预览" />
   </section>

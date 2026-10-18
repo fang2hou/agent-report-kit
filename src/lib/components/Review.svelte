@@ -4,6 +4,16 @@
 
   let { review, title }: { review: Review; title: string } = $props();
 
+  /* Verdict glyphs follow the tone, so the shape carries the meaning the
+     tone declares: ok=check, risk=cross, warn=deferral clock, none=dot.
+     currentColor flips them to white on the filled checked state. */
+  const GLYPH: Record<string, string> = {
+    ok: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.4 6.4l2.5 2.5 4.7-5.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    risk: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    warn: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 3.6V6l1.9 1.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    none: '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="2.6" fill="currentColor"/></svg>'
+  };
+
   type Answer = { value: string | string[]; label?: string | string[] };
   type Raw = string | string[];
 
@@ -263,7 +273,7 @@
         {/if}
         <div class={`options clear-both mt-[0.6em] grid gap-2.5 ${q.cols ? 'grid-cols-[repeat(auto-fit,minmax(220px,1fr))]' : ''}`}>
           {#each q.options as opt (opt.value)}
-            <label class="option grid cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 rounded-sm border border-line-2 bg-bg px-3.5 py-[11px] font-ui leading-[1.55] tracking-normal transition-colors duration-100 hover:border-accent has-[:checked]:border-accent has-[:checked]:bg-accent-soft">
+            <label class="option grid cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 rounded-[12px] border border-line-2 bg-bg px-3.5 py-[11px] font-ui leading-[1.55] tracking-normal transition-colors duration-100 hover:border-accent has-[:checked]:border-accent has-[:checked]:bg-accent-soft">
               {#if q.multiple}
                 <input
                   class="opt-in checkbox"
@@ -313,7 +323,7 @@
               {#each item.verdicts as v (v.value)}
                 <label class={v.tone ?? ''}>
                   <input type="radio" name={item.id} value={v.value} bind:group={answers[item.id]} />
-                  <span>{v.label}</span>
+                  <span>{@html GLYPH[v.tone ?? 'none']}{v.label}</span>
                 </label>
               {/each}
             </div>
@@ -358,12 +368,12 @@
       <span class="status flex-[1_1_12em] text-muted" aria-live="polite">{status}</span>
       <button
         type="button"
-        class="btn cursor-pointer rounded-sm border border-line-2 bg-surface px-4 py-[7px] text-[1em] text-ink"
+        class="btn cursor-pointer rounded-[10px] border border-line-2 bg-surface px-4 py-[7px] text-[1em] text-ink"
         onclick={onCopy}>{S.copy}</button
       >
       <button
         type="submit"
-        class="btn cursor-pointer rounded-sm border border-accent bg-accent px-4 py-[7px] text-[1em] text-white"
+        class="btn cursor-pointer rounded-[10px] border border-accent bg-accent px-4 py-[7px] text-[1em] text-white"
         >{S.submit}</button
       >
       <textarea
@@ -404,7 +414,7 @@
   }
 
   .opt-in.checkbox {
-    border-radius: 5px;
+    border-radius: 6px;
   }
 
   .opt-in:hover:not(:checked) {
@@ -504,22 +514,18 @@
     position: relative;
     cursor: pointer;
     --tone: var(--color-accent);
-    --dot: color-mix(in srgb, var(--color-muted) 60%, var(--color-bg));
   }
 
   .seg > .ok {
     --tone: var(--color-ok);
-    --dot: var(--color-ok);
   }
 
   .seg > .warn {
     --tone: var(--color-warn);
-    --dot: var(--color-warn);
   }
 
   .seg > .risk {
     --tone: var(--color-risk);
-    --dot: var(--color-risk);
   }
 
   .seg input {
@@ -533,10 +539,10 @@
   .seg span {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     padding: 5px 14px 5px 12px;
     border: 1px solid var(--color-line-2);
-    border-radius: 999px;
+    border-radius: 10px;
     background: var(--color-surface);
     white-space: nowrap;
     transition:
@@ -545,12 +551,13 @@
       color 0.12s;
   }
 
-  .seg span::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--dot);
+  /* The glyph comes from a compile-time map via {@html}, so it carries no
+     scope class; the span itself is compiled and stays scoped. */
+  .seg span :global(svg) {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--tone);
   }
 
   .seg > label:hover span {
@@ -568,8 +575,8 @@
     color: #fff;
   }
 
-  .seg input:checked + span::before {
-    background: #fff;
+  .seg input:checked + span :global(svg) {
+    color: #fff;
   }
 
   input[type='text'],
@@ -581,9 +588,31 @@
     color: var(--color-ink);
     background: var(--color-surface);
     border: 1px solid var(--color-line-2);
-    border-radius: var(--radius-sm);
-    padding: 8px 11px;
+    padding: 8px 14px;
     margin-top: 0.5em;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  input[type='text']:hover,
+  textarea:hover {
+    border-color: color-mix(in srgb, var(--color-ink) 30%, var(--color-line-2));
+  }
+
+  input[type='text']:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  }
+
+  /* Every text field inside a white container shares one radius, single or
+     multi-line alike — the tier system only separates inputs (10px) from
+     the containers around them (20px). */
+  input[type='text'],
+  textarea {
+    border-radius: 10px;
   }
 
   textarea {

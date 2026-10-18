@@ -10,7 +10,7 @@ pnpm install                 # install dependencies
 pnpm dev                     # dev server; /#/styleguide renders every component
 pnpm build                   # production build into build/index.html
 node tools/build.ts <report.json> <out.html>   # validate + compile + inject, from any cwd
-python3 tools/serve.py start <dir>             # serve a compiled page, collect answers
+node tools/serve.ts start <dir>              # serve a compiled page, collect answers
 mise run lint                # oxlint only
 mise run typecheck           # svelte-check only
 mise run format              # oxfmt, rewrites in place
@@ -34,9 +34,9 @@ Project-specific overrides:
 
 ## Layout
 
-- `src/` — the renderer: `src/lib/components/` (Block, Review, Chat), `src/lib/schema.ts` (zod contract), `src/lib/report.ts`, `src/app.css` (Tailwind v4 theme tokens), `src/routes/` (page shell and the `/styleguide` demo).
+- `src/` — the renderer: `src/lib/components/` (Block, Review, Chat, Toc, Scroller), `src/lib/schema.ts` (zod contract), `src/app.css` (Tailwind v4 theme tokens), `src/lib/diagrams/` (Mermaid sources and rendered SVG for the demo), `src/routes/` (page shell and the `/styleguide` demo).
 - `docs/` — the authoring contract and guides consumed by downstream skills: report-schema.md, components.md, typography.md.
-- `tools/` — build.ts and validate.ts (compile pipeline), serve.py (review/chat round-trip server).
+- `tools/` — build.ts and validate.ts (compile pipeline), diagram.ts (Mermaid → themed SVG via Pele), serve.ts (review/chat round-trip server).
 - `build/` — build output; only `index.html` matters.
 
 ## Boundaries
@@ -49,7 +49,7 @@ Always:
 
 Never:
 
-- Add CDN scripts, web fonts, or remote images — pages must open from `file://` offline
+- Add CDN scripts, web fonts, or remote images — pages must work fully offline
 - Break the single-file output: everything the page needs is inlined in `index.html`
 - Edit `.svelte-kit/` or `build/` by hand
 
@@ -75,6 +75,6 @@ Do not infer UI language from conversation language.
 - The renderer owns the look: theme tokens live in `src/app.css` (`@theme` static, `:lang` runtime); style changes never leak into report JSON or consumer skills.
 - Utilities for markup-owned styles; `@layer base` for report-content element defaults (content comes from JSON and cannot take classes); `@layer components` only for nodes injected by runtime chat code and the global `.chip` classes.
 - Svelte 5 runes only; run `svelte-autofixer` on every component you touch.
-- The consumer contract: skills clone this repo, write `report.json`, and run `tools/build.ts` + `tools/serve.py`. Never assume the skill directory carries template content.
+- The consumer contract: skills clone this repo, write `report.json`, and run `tools/build.ts` + `tools/serve.ts`. Never assume the skill directory carries template content.
 
 Depth: [DEVELOPMENT.md](./DEVELOPMENT.md) for workflow and toolchain, [CONTRIBUTING.md](./CONTRIBUTING.md) for PR rules, [ARCHITECTURE.md](./ARCHITECTURE.md) for invariants.

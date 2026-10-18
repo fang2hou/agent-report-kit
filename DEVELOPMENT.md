@@ -29,7 +29,8 @@ Do not substitute tools without explicit approval (see the guidelines repository
 ```bash
 pnpm dev                                     # dev server; /#/styleguide renders every component
 node tools/build.ts <report.json> <out.html>  # full compile, works from any cwd
-python3 tools/serve.py start <dir>            # serve a compiled page + collect answers
+node tools/diagram.ts <diagram.mmd> [out.svg] # Mermaid → themed SVG (Pele); prints to stdout without out
+node tools/serve.ts start <dir>            # serve a compiled page + collect answers
 mise run check                               # full validation — what CI runs
 mise run lint | typecheck | format | validate # individual gates
 ```
@@ -62,14 +63,14 @@ Follow the guidelines repository's coding standards. Project-specific rules:
 There is no automated test suite. Verification for a change is:
 
 1. `mise run check` (lint, format, typecheck, schema validation).
-2. Build smoke: `node tools/build.ts src/lib/report.json /tmp/index.html`, then serve it with `tools/serve.py` and walk the affected surface in a browser (components on `/#/styleguide`, review round trip, selection chat).
+2. Build smoke: `node tools/build.ts src/lib/report.json /tmp/index.html`, then serve it with `tools/serve.ts` and walk the affected surface in a browser (components on `/#/styleguide`, review round trip, selection chat).
 
 Add a real suite before the next contract-breaking change, not after.
 
 ## Debugging
 
-- A blank page under `file://` usually means the hash router was bypassed or CSS failed to inline — check `router: { type: 'hash' }` and `%sveltekit.head%` placement.
-- `tools/serve.py --help` lists commands and endpoints; `serve.py status` shows whether state and chat files are being written.
+- A blank page when the artifact is opened directly usually means the hash router was bypassed or CSS failed to inline — check `router: { type: 'hash' }` and `%sveltekit.head%` placement.
+- `node tools/serve.ts` (no args) lists commands; `serve.ts status` shows whether state and chat files are being written.
 
 ## Validation
 
@@ -78,4 +79,4 @@ It runs the same checks locally that CI runs — do not maintain separate logic.
 
 ## Deployment
 
-Not applicable. The artifact is `build/index.html`, distributed by consumers.
+Not applicable. The artifact is `build/index.html`; distribution belongs to the consumer — any static channel (HTTP server, attachment, locally opened file) works.

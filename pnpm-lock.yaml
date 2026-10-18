@@ -26,6 +26,9 @@ importers:
       oxlint:
         specifier: ^1.88.0
         version: 1.88.0
+      pele:
+        specifier: ^1.6.0
+        version: 1.6.0
       svelte:
         specifier: ^5.57.2
         version: 5.57.2
@@ -827,6 +830,10 @@ packages:
       vite-plus:
         optional: true
 
+  pele@1.6.0:
+    resolution: {integrity: sha512-VfAiVItsOGlGhvnBfphdT28VCG7mXMZxQNOwAGsCtxI2ztbUsT39MraEOYjsapLxVETkdUZscm0DdotYDQMLdw==}
+    engines: {node: '>=20'}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -1453,6 +1460,8 @@ snapshots:
       '@oxlint/binding-win32-arm64-msvc': 1.88.0
       '@oxlint/binding-win32-ia32-msvc': 1.88.0
       '@oxlint/binding-win32-x64-msvc': 1.88.0
+
+  pele@1.6.0: {}
 
   picocolors@1.1.1: {}
 
