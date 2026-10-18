@@ -62,7 +62,7 @@
     en: {
       on: 'Connected to Agent',
       off: 'Local mode · not connected',
-      ask: 'Ask the agent about this passage…',
+      ask: 'Ask the Agent about this passage…',
       send: 'Send',
       thread: 'Discussion with the Agent',
       you: 'You',
