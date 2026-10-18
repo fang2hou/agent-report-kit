@@ -32,7 +32,7 @@
     zh: {
       on: '与 Agent 连接中',
       off: '本地模式 · 未连接',
-      ask: '向 Agent 提问…',
+      ask: '就这段向 Agent 提问…',
       send: '发送',
       thread: '与 Agent 的讨论',
       you: '你',
@@ -47,7 +47,7 @@
     ja: {
       on: 'Agentと接続中',
       off: 'ローカルモード・未接続',
-      ask: 'Agentに質問…',
+      ask: 'この部分について Agent に質問…',
       send: '送信',
       thread: 'Agentとのやり取り',
       you: 'あなた',
@@ -62,7 +62,7 @@
     en: {
       on: 'Connected to Agent',
       off: 'Local mode · not connected',
-      ask: 'Ask the Agent…',
+      ask: 'Ask the agent about this passage…',
       send: 'Send',
       thread: 'Discussion with the Agent',
       you: 'You',
@@ -94,6 +94,7 @@
     const W: ChatWords = { ...WORDS.en!, ...WORDS[lang] };
 
     chip.title = W.list;
+    chip.ariaLabel = W.list;
     const titleSpan = list.querySelector('.qa-title');
     if (titleSpan) titleSpan.textContent = W.list;
     input.placeholder = W.ask;
@@ -423,9 +424,18 @@
     // ---- selection -> ask bubble ----
     let selRange: Range | null = null;
     let selText = '';
+    // Paint the passage under discussion while the ask bubble is up. The
+    // Highlight API keeps the tint on the range even after the selection
+    // collapses when typing begins; browsers without it just skip the tint.
+    const paintSel = (range: Range | null) => {
+      if (typeof Highlight === 'undefined' || !CSS.highlights) return;
+      if (range) CSS.highlights.set('qa-sel', new Highlight(range));
+      else CSS.highlights.delete('qa-sel');
+    };
     const hideBubble = () => {
       bubble.classList.remove('show');
       selRange = null;
+      paintSel(null);
     };
 
     const showBubble = () => {
@@ -451,6 +461,7 @@
       const fresh = !bubble.classList.contains('show');
       selRange = range.cloneRange();
       selText = text;
+      paintSel(selRange);
       bubble.classList.add('show');
       bubble.style.top = `${rect.bottom + scrollY + 10}px`;
       bubble.style.left = `${Math.max(
@@ -481,7 +492,7 @@
       const text = input.value.trim();
       if (!text || !selRange || !online) return;
       const range = selRange;
-      const quote = selText.slice(0, 300);
+      const quote = selText.length > 300 ? `${selText.slice(0, 300)}…` : selText;
       hideBubble();
       input.value = '';
       try {
@@ -560,21 +571,39 @@
   });
 </script>
 
-<button type="button" class="conn-chip" bind:this={chip}>
-  <i bind:this={dot}></i>
+<button
+  type="button"
+  class="conn-chip fixed top-4 left-4 z-4 items-center gap-2 rounded-full border border-line bg-surface py-[5px] pr-3 pl-2.5 text-left font-ui text-[max(0.72em,14px)] tracking-normal text-muted cursor-pointer"
+  bind:this={chip}
+  aria-label="Discussions"
+>
+  <i class="size-2 rounded-full bg-[color-mix(in_srgb,var(--color-muted)_55%,var(--color-bg))]" bind:this={dot}></i>
   <span bind:this={label}></span>
-  <b bind:this={badge} hidden></b>
+  <b class="min-w-[18px] rounded-full bg-accent-soft px-1.5 text-center font-semibold text-ink" bind:this={badge} hidden></b>
 </button>
-<div class="qa-list" bind:this={list}>
-  <div class="qa-head">
+<div
+  class="qa-list fixed top-[54px] left-4 z-5 w-[min(400px,calc(100vw-32px))] max-h-[min(70vh,560px)] flex-col overflow-hidden rounded-lg border border-line-2 bg-surface font-ui shadow-pop"
+  bind:this={list}
+>
+  <div class="qa-head px-1 pt-1">
     <span class="qa-title"></span>
     <button type="button" class="qa-close" aria-label="Close discussion list">×</button>
   </div>
-  <div class="qa-body" bind:this={listBody}></div>
+  <div class="qa-body overflow-y-auto overflow-x-hidden px-2.5 pt-1 pb-2.5" bind:this={listBody}></div>
 </div>
-<div class="qa-pop" bind:this={pop} hidden></div>
-<div class="qa-bubble" bind:this={bubble}>
+<div
+  class="qa-pop absolute z-6 w-[min(380px,calc(100vw-48px))] [&:not([hidden])]:flex flex-col rounded-lg border border-line-2 bg-surface px-4 pt-3.5 pb-3 font-ui text-[max(0.78em,14px)] leading-[1.5] shadow-pop"
+  bind:this={pop}
+  hidden
+></div>
+<div
+  class="qa-bubble absolute z-6 items-center gap-1.5 rounded-lg border border-line-2 bg-surface py-[7px] pr-2.5 pl-3 font-ui shadow-bubble"
+  bind:this={bubble}
+>
   <input type="text" bind:this={input} aria-label="Question for the agent" />
   <button type="button" class="qa-send" aria-label="Send question"></button>
-  <span class="hint">↵</span>
+  <span
+    class="inline-flex h-5 min-w-5 items-center justify-center rounded border border-line-2 bg-sunk px-1 font-mono text-[12px] leading-none text-ink-2 select-none"
+    aria-hidden="true">↵</span
+  >
 </div>

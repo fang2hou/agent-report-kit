@@ -55,20 +55,22 @@
 
 <svelte:window onbeforeprint={openDetailsForPrint}></svelte:window>
 
-<main class="page">
-  <header class="masthead">
+<main class="page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pb-30 pt-14">
+  <header class="masthead mb-9 min-w-0 col-start-2">
     {#if report.kicker}
-      <p class="kicker">{report.kicker}</p>
+      <p class="kicker m-0 mb-[0.6em] font-ui text-[0.86em] tracking-normal text-muted">
+        {report.kicker}
+      </p>
     {/if}
     <h1>{report.title}</h1>
     {#if report.meta}
-      <p class="meta">{report.meta}</p>
+      <p class="meta m-0 font-ui text-[0.86em] tracking-normal text-muted">{report.meta}</p>
     {/if}
   </header>
 
-  <section class="summary">
-    <h2>{t.summary}</h2>
-    <ul>
+  <section class="summary mb-[1.6em] min-w-0 col-start-2 rounded-lg border border-line bg-surface px-[26px] py-[22px] supports-[corner-shape:squircle]:rounded-xl">
+    <h2 class="mt-0 mb-[0.4em] border-t-0 pt-0 text-[0.86em] text-muted">{t.summary}</h2>
+    <ul class="mb-0">
       {#each report.summary as point (point)}
         <li>{@html point}</li>
       {/each}
@@ -76,8 +78,8 @@
   </section>
 
   {#if showToc}
-    <nav>
-      <ol class="toc">
+    <nav class="min-w-0 col-start-2">
+      <ol class="toc list-decimal columns-[2_16em] gap-[2em] pl-[1.2em] font-ui text-[0.92em]">
         {#each report.sections as section, i (section.id ?? section)}
           <li><a href="#{section.id ?? sectionId(i)}">{section.heading}</a></li>
         {/each}
@@ -86,7 +88,7 @@
   {/if}
 
   {#each report.sections as section, i (section.id ?? section)}
-    <section id={section.id ?? sectionId(i)}>
+    <section id={section.id ?? sectionId(i)} class="min-w-0 col-start-2">
       <h2>{section.heading}</h2>
       {#each section.blocks as block (block.id ?? block)}
         <Block {block} />
@@ -95,7 +97,7 @@
   {/each}
 
   {#if report.review && report.review.questions.length > 0}
-    <section>
+    <section class="min-w-0 col-start-2">
       <h2>{t.review}</h2>
       <Review review={report.review} title={report.title} />
     </section>

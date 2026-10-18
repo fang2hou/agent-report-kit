@@ -251,48 +251,63 @@
 <form data-review oninput={schedule} onsubmit={onSubmit}>
   {#each review.questions as q (q.id)}
     {#if q.type === 'choice'}
-      <fieldset class="q" data-required={q.id} class:missing={missingIds.includes(q.id)}>
-        <legend>{q.text}</legend>
+      <fieldset
+        class={`q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl ${
+          missingIds.includes(q.id) ? 'border-risk' : ''
+        }`}
+        data-required={q.id}
+      >
+        <legend class="float-left w-full p-0 pb-[0.3em] text-[1.04em] font-semibold">{q.text}</legend>
         {#if q.hint}
-          <p class="hint">{q.hint}</p>
+          <p class="hint clear-both m-0 mb-[0.8em] font-ui text-[0.88em] text-muted">{q.hint}</p>
         {/if}
-        <div class="options" class:cols={q.cols}>
+        <div class={`options clear-both mt-[0.6em] grid gap-2.5 ${q.cols ? 'grid-cols-[repeat(auto-fit,minmax(220px,1fr))]' : ''}`}>
           {#each q.options as opt (opt.value)}
-            <label class="option">
+            <label class="option grid cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 rounded-sm border border-line-2 bg-bg px-3.5 py-[11px] font-ui leading-[1.55] tracking-normal transition-colors duration-100 hover:border-accent has-[:checked]:border-accent has-[:checked]:bg-accent-soft">
               {#if q.multiple}
                 <input
+                  class="opt-in checkbox"
                   type="checkbox"
                   name={q.id}
                   value={opt.value}
                   bind:group={answers[q.id]}
                 />
               {:else}
-                <input type="radio" name={q.id} value={opt.value} bind:group={answers[q.id]} />
+                <input class="opt-in radio" type="radio" name={q.id} value={opt.value} bind:group={answers[q.id]} />
               {/if}
-              <span class="t">{opt.label}</span>
+              <span class="t font-semibold">{opt.label}</span>
               {#if opt.desc}
-                <span class="d">{opt.desc}</span>
+                <span class="d col-start-2 text-[0.9em] text-ink-2">{opt.desc}</span>
               {/if}
             </label>
           {/each}
         </div>
         {#if q.note}
-          <input type="text" name={`${q.id}:note`} placeholder={S.notePlaceholder} bind:value={notes[q.id]} />
+          <input
+            class="clear-both"
+            type="text"
+            name={`${q.id}:note`}
+            placeholder={S.notePlaceholder}
+            bind:value={notes[q.id]}
+          />
         {/if}
       </fieldset>
     {:else if q.type === 'verdict'}
-      <fieldset class="q">
-        <legend>{q.text}</legend>
+      <fieldset class="q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl">
+        <legend class="float-left w-full p-0 pb-[0.3em] text-[1.04em] font-semibold">{q.text}</legend>
         {#each q.items as item (item.id)}
-          <fieldset class="item" data-required={item.id} class:missing={missingIds.includes(item.id)}>
+          <fieldset
+            class={`item clear-both ${missingIds.includes(item.id) ? 'missing' : ''}`}
+            data-required={item.id}
+          >
             <legend>
               {item.label}
               {#if item.chip}
-                <span class="chip">{item.chip}</span>
+                <span class="ml-1 inline-block rounded-full bg-sunk px-[0.6em] align-[0.08em] font-ui text-[max(0.82em,14px)] leading-[1.6] tracking-normal whitespace-nowrap text-ink-2">{item.chip}</span>
               {/if}
             </legend>
             {#if item.hint}
-              <p class="hint">{item.hint}</p>
+              <p class="hint m-0 mt-[0.15em] font-ui text-[0.88em] text-muted">{item.hint}</p>
             {/if}
             <div class="seg">
               {#each item.verdicts as v (v.value)}
@@ -312,19 +327,21 @@
         {/each}
       </fieldset>
     {:else}
-      <fieldset class="q">
-        <legend>{q.text}</legend>
+      <fieldset class="q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl">
+        <legend class="float-left w-full p-0 pb-[0.3em] text-[1.04em] font-semibold">{q.text}</legend>
         {#if q.hint}
-          <p class="hint">{q.hint}</p>
+          <p class="hint clear-both m-0 mb-[0.8em] font-ui text-[0.88em] text-muted">{q.hint}</p>
         {/if}
         {#if q.multiline}
           <textarea
+            class="clear-both"
             name={q.id}
             placeholder={q.placeholder ?? S.textPlaceholder}
             bind:value={texts[q.id]}
           ></textarea>
         {:else}
           <input
+            class="clear-both"
             type="text"
             name={q.id}
             placeholder={q.placeholder ?? S.textPlaceholder}
@@ -335,96 +352,36 @@
     {/if}
   {/each}
 
-  <div class="submit-dock">
-    <div class="submit-bar">
+  <div class="submit-dock sticky bottom-0 z-2 -mx-4 mt-[1.4em] px-4 pt-7 pb-[22px] bg-[linear-gradient(transparent,var(--color-bg)_26px)] pointer-events-none">
+    <div class="submit-bar pointer-events-auto flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-lg border border-line bg-surface px-3 py-3 pl-[22px] font-ui text-[0.92em] tracking-normal shadow-dock supports-[corner-shape:squircle]:rounded-xl">
       <span class="progress">{progressText}</span>
-      <span class="status" aria-live="polite">{status}</span>
-      <button type="button" class="btn" onclick={onCopy}>{S.copy}</button>
-      <button type="submit" class="btn primary">{S.submit}</button>
-      <textarea class="export" class:show={exportShown} readonly aria-label="JSON" bind:value={exportText}></textarea>
+      <span class="status flex-[1_1_12em] text-muted" aria-live="polite">{status}</span>
+      <button
+        type="button"
+        class="btn cursor-pointer rounded-sm border border-line-2 bg-surface px-4 py-[7px] text-[1em] text-ink"
+        onclick={onCopy}>{S.copy}</button
+      >
+      <button
+        type="submit"
+        class="btn cursor-pointer rounded-sm border border-accent bg-accent px-4 py-[7px] text-[1em] text-white"
+        >{S.submit}</button
+      >
+      <textarea
+        class={`export w-full min-h-32 font-mono text-[0.8em] ${exportShown ? 'block' : 'hidden'}`}
+        readonly
+        aria-label="JSON"
+        bind:value={exportText}
+      ></textarea>
     </div>
   </div>
 </form>
 
 <style>
-  fieldset.q {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    padding: 18px 22px 20px;
-    margin: 1.2em 0;
-    min-width: 0;
-  }
+  /* Input controls and the verdict matrix keep a scoped block: their checked
+     states, pseudo-dots, and forced-colors fallbacks are state matrices, not
+     layout. Every value comes from the theme tokens in app.css. */
 
-  @supports (corner-shape: squircle) {
-    fieldset.q {
-      corner-shape: squircle;
-      border-radius: 20px;
-    }
-  }
-
-  fieldset.q > legend {
-    float: left;
-    width: 100%;
-    padding: 0;
-    margin-bottom: 0.3em;
-    font-weight: 600;
-    font-size: 1.04em;
-  }
-
-  fieldset.q > legend + * {
-    clear: both;
-  }
-
-  fieldset.q.missing {
-    border-color: var(--risk);
-  }
-
-  .hint {
-    font-family: var(--ui);
-    font-size: 0.88em;
-    color: var(--muted);
-    margin: 0 0 0.8em;
-  }
-
-  .options {
-    display: grid;
-    gap: 10px;
-    margin-top: 0.6em;
-  }
-
-  .options.cols {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
-
-  .option {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: 12px;
-    align-items: start;
-    padding: 11px 14px;
-    border: 1px solid var(--line-2);
-    border-radius: var(--r-sm);
-    background: var(--bg);
-    cursor: pointer;
-    font-family: var(--ui);
-    line-height: 1.55;
-    letter-spacing: 0;
-    transition:
-      background-color 0.12s,
-      border-color 0.12s;
-  }
-
-  .option:hover {
-    border-color: var(--accent);
-  }
-
-  .option:has(input:checked) {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
-
-  .option > input {
+  .opt-in {
     appearance: none;
     display: grid;
     place-content: center;
@@ -433,8 +390,8 @@
     width: 1.15em;
     height: 1.15em;
     margin: calc((1lh - 1.15em) / 2) 0 0;
-    border: 1.5px solid color-mix(in srgb, var(--muted) 70%, var(--bg));
-    background: var(--surface);
+    border: 1.5px solid color-mix(in srgb, var(--color-muted) 70%, var(--color-bg));
+    background: var(--color-surface);
     cursor: pointer;
     transition:
       background-color 0.12s,
@@ -442,51 +399,41 @@
       box-shadow 0.12s;
   }
 
-  .option > input[type='radio'] {
+  .opt-in.radio {
     border-radius: 50%;
   }
 
-  .option > input[type='checkbox'] {
+  .opt-in.checkbox {
     border-radius: 5px;
   }
 
-  .option:hover > input:not(:checked) {
-    border-color: var(--accent);
+  .opt-in:hover:not(:checked) {
+    border-color: var(--color-accent);
   }
 
-  .option > input:checked {
-    border-color: var(--accent);
-    background-color: var(--accent);
+  .opt-in:checked {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
   }
 
-  .option > input[type='radio']:checked {
-    box-shadow: inset 0 0 0 3px var(--surface);
+  .opt-in.radio:checked {
+    box-shadow: inset 0 0 0 3px var(--color-surface);
   }
 
-  .option > input[type='checkbox']:checked {
+  .opt-in.checkbox:checked {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.2l3 3 6-6.4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-size: 100%;
   }
 
-  .option > input:focus-visible {
-    outline: 2px solid var(--accent);
+  .opt-in:focus-visible {
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
 
   @media (forced-colors: active) {
-    .option > input {
+    .opt-in {
       appearance: auto;
     }
-  }
-
-  .option > .t {
-    font-weight: 600;
-  }
-
-  .option > .d {
-    grid-column: 2;
-    font-size: 0.9em;
-    color: var(--ink-2);
   }
 
   .item {
@@ -495,7 +442,7 @@
     column-gap: 24px;
     align-items: center;
     border: 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--color-line);
     margin: 0;
     padding: 14px 0;
     min-width: 0;
@@ -535,7 +482,7 @@
   }
 
   .item.missing > legend {
-    color: var(--risk);
+    color: var(--color-risk);
   }
 
   .item:last-child {
@@ -556,23 +503,23 @@
   .seg > label {
     position: relative;
     cursor: pointer;
-    --tone: var(--accent);
-    --dot: color-mix(in srgb, var(--muted) 60%, var(--bg));
+    --tone: var(--color-accent);
+    --dot: color-mix(in srgb, var(--color-muted) 60%, var(--color-bg));
   }
 
   .seg > .ok {
-    --tone: var(--ok);
-    --dot: var(--ok);
+    --tone: var(--color-ok);
+    --dot: var(--color-ok);
   }
 
   .seg > .warn {
-    --tone: var(--warn);
-    --dot: var(--warn);
+    --tone: var(--color-warn);
+    --dot: var(--color-warn);
   }
 
   .seg > .risk {
-    --tone: var(--risk);
-    --dot: var(--risk);
+    --tone: var(--color-risk);
+    --dot: var(--color-risk);
   }
 
   .seg input {
@@ -588,9 +535,9 @@
     align-items: center;
     gap: 7px;
     padding: 5px 14px 5px 12px;
-    border: 1px solid var(--line-2);
+    border: 1px solid var(--color-line-2);
     border-radius: 999px;
-    background: var(--surface);
+    background: var(--color-surface);
     white-space: nowrap;
     transition:
       background-color 0.12s,
@@ -611,7 +558,7 @@
   }
 
   .seg input:focus-visible + span {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
 
@@ -625,16 +572,16 @@
     background: #fff;
   }
 
-  textarea,
-  input[type='text'] {
+  input[type='text'],
+  textarea {
     width: 100%;
     font-size: 0.92em;
     line-height: 1.5;
     letter-spacing: 0;
-    color: var(--ink);
-    background: var(--surface);
-    border: 1px solid var(--line-2);
-    border-radius: var(--r-sm);
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-2);
+    border-radius: var(--radius-sm);
     padding: 8px 11px;
     margin-top: 0.5em;
   }
@@ -646,72 +593,6 @@
   }
 
   ::placeholder {
-    color: var(--muted);
-  }
-
-  .submit-dock {
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    margin: 1.4em -16px 0;
-    padding: 28px 16px 22px;
-    background: linear-gradient(transparent, var(--bg) 26px);
-    pointer-events: none;
-  }
-
-  .submit-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 14px;
-    padding: 12px 12px 12px 22px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    font-family: var(--ui);
-    font-size: 0.92em;
-    letter-spacing: 0;
-    box-shadow: 0 4px 18px rgb(40 48 59 / 0.08);
-    pointer-events: auto;
-  }
-
-  @supports (corner-shape: squircle) {
-    .submit-bar {
-      corner-shape: squircle;
-      border-radius: 20px;
-    }
-  }
-
-  .submit-bar .status {
-    color: var(--muted);
-    flex: 1 1 12em;
-  }
-
-  .btn {
-    font-size: 1em;
-    padding: 7px 16px;
-    border-radius: var(--r-sm);
-    border: 1px solid var(--line-2);
-    background: var(--surface);
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-
-  .export {
-    display: none;
-    width: 100%;
-    min-height: 8em;
-    font-family: var(--mono);
-    font-size: 0.8em;
-  }
-
-  .export.show {
-    display: block;
+    color: var(--color-muted);
   }
 </style>
