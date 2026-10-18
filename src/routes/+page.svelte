@@ -1,156 +1,79 @@
 <script lang="ts">
-  import report from '#lib/report.json';
+  import raw from '#lib/report.json';
+  import type { Report } from '#lib/schema';
+  import Block from '#lib/components/Block.svelte';
+  import Review from '#lib/components/Review.svelte';
 
-  interface UiStrings {
-    summary: string;
-    review: string;
-    picked: string;
-    unselected: string;
-    colon: string;
-  }
+  const report = raw as unknown as Report;
 
-  const FALLBACK_STRINGS: UiStrings = {
-    summary: 'Conclusion',
-    review: 'To decide',
-    picked: 'Selected',
-    unselected: 'none',
-    colon: ': '
+  const FALLBACK_STRINGS = { summary: 'Conclusion', review: 'To decide' };
+  const UI_STRINGS: Record<string, { summary: string; review: string }> = {
+    'zh-cn': { summary: '结论', review: '待决问题' },
+    ja: { summary: '結論', review: '確認事項' }
   };
+  const t =
+    UI_STRINGS[report.lang.toLowerCase()] ?? UI_STRINGS[report.lang.toLowerCase().slice(0, 2)] ??
+    FALLBACK_STRINGS;
 
-  const UI_STRINGS: Record<string, UiStrings> = {
-    'zh-CN': {
-      summary: '结论',
-      review: '待决问题',
-      picked: '已选',
-      unselected: '未选',
-      colon: '：'
-    },
-    ja: {
-      summary: '結論',
-      review: '確認事項',
-      picked: '選択済み',
-      unselected: '未選択',
-      colon: '：'
-    }
-  };
-
-  const t = UI_STRINGS[report.lang] ?? FALLBACK_STRINGS;
-
-  let answers: Record<string, string> = $state({});
-  const firstQuestion = report.review.questions[0];
+  const sectionId = (i: number) => `sec-${i + 1}`;
+  const showToc = report.sections.length >= 5;
 
   document.documentElement.lang = report.lang;
+
+  const openDetailsForPrint = () => {
+    for (const d of document.querySelectorAll('details')) d.open = true;
+  };
 </script>
 
 <svelte:head>
   <title>{report.title}</title>
 </svelte:head>
 
+<svelte:window onbeforeprint={openDetailsForPrint}></svelte:window>
+
 <main class="page">
   <header class="masthead">
+    {#if report.kicker}
+      <p class="kicker">{report.kicker}</p>
+    {/if}
     <h1>{report.title}</h1>
+    {#if report.meta}
+      <p class="meta">{report.meta}</p>
+    {/if}
   </header>
+
   <section class="summary">
     <h2>{t.summary}</h2>
     <ul>
       {#each report.summary as point (point)}
-        <li>{point}</li>
+        <li>{@html point}</li>
       {/each}
     </ul>
   </section>
-  {#each report.sections as section (section.heading)}
-    <section>
+
+  {#if showToc}
+    <nav>
+      <ol class="toc">
+        {#each report.sections as section, i (section.id ?? section)}
+          <li><a href="#{section.id ?? sectionId(i)}">{section.heading}</a></li>
+        {/each}
+      </ol>
+    </nav>
+  {/if}
+
+  {#each report.sections as section, i (section.id ?? section)}
+    <section id={section.id ?? sectionId(i)}>
       <h2>{section.heading}</h2>
-      {#each section.blocks as block (block)}
-        {#if block.type === 'p'}
-          <p>{block.text}</p>
-        {:else if block.type === 'table'}
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>{#each block.columns as c (c)}<th>{c}</th>{/each}</tr>
-              </thead>
-              <tbody>
-                {#each block.rows as row (row)}
-                  <tr>{#each row as cell (cell)}<td>{cell}</td>{/each}</tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
-        {/if}
+      {#each section.blocks as block (block.id ?? block)}
+        <Block {block} />
       {/each}
     </section>
   {/each}
-  {#if report.review}
-    <form>
+
+  {#if report.review && report.review.questions.length > 0}
+    <section>
       <h2>{t.review}</h2>
-      {#each report.review.questions as q (q.id)}
-        <fieldset>
-          <legend>{q.text}</legend>
-          {#each q.options as opt (opt.value)}
-            <label>
-              <input
-                type="radio"
-                name={q.id}
-                value={opt.value}
-                bind:group={answers[q.id]}
-              />
-              {opt.label}
-            </label>
-          {/each}
-        </fieldset>
-      {/each}
-      {#if firstQuestion}
-        <p class="picked">{t.picked}{t.colon}{answers[firstQuestion.id] ?? t.unselected}</p>
-      {/if}
-    </form>
+      <Review review={report.review} title={report.title} />
+    </section>
   {/if}
 </main>
-
-<style>
-  :global(body) {
-    margin: 0;
-    font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
-    background: #faf6ef;
-    color: #28303b;
-  }
-  .page {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 48px 24px;
-  }
-  h1 {
-    font-size: 28px;
-  }
-  h2 {
-    font-size: 20px;
-    margin-top: 2em;
-  }
-  .summary {
-    background: #f0e9dc;
-    border-radius: 8px;
-    padding: 12px 20px;
-  }
-  .table-wrap {
-    overflow-x: auto;
-  }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-  th,
-  td {
-    border: 1px solid #d8d0c2;
-    padding: 6px 10px;
-    text-align: left;
-    font-size: 15px;
-  }
-  fieldset {
-    border: 1px solid #d8d0c2;
-    border-radius: 8px;
-  }
-  .picked {
-    color: #6b7280;
-    font-size: 14px;
-  }
-</style>
