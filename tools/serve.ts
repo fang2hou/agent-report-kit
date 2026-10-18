@@ -120,6 +120,7 @@ async function launch() {
   const child = spawn(process.execPath, [join(KIT, "dist/server/index.js")], {
     cwd: KIT,
     detached: true,
+    windowsHide: true,
     stdio: ["ignore", log, log],
     env: {
       ...process.env,
