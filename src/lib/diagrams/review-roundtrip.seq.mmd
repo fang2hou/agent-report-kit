@@ -1,0 +1,13 @@
+sequenceDiagram
+    autonumber
+    participant U as 用户
+    participant P as 报告页
+    participant S as serve.ts
+    participant A as Agent
+    U->>P: 填写审阅表单
+    P->>S: PUT /api/state
+    U->>P: 划词提问
+    P->>S: POST /api/chat
+    A->>S: 轮询并写回回复
+    S-->>P: 新消息到达
+    P-->>U: 高亮处显示回复

@@ -1,54 +1,85 @@
 {
   "lang": "zh-CN",
-  "title": "report-kit 组件库与模板视觉对齐验收",
-  "kicker": "渲染器迁移 · Phase 2",
-  "meta": "范围：template.html 的全部组件在三语字体栈下的渲染对齐。判定方式：本页每个组件的视觉与交互。",
+  "title": "agent-report-kit 渲染能力示例",
+  "kicker": "agent-report-kit · 示例报告",
+  "meta": "范围：全部 15 种块类型与 3 类审阅问题，zh-CN 字体栈。",
   "summary": [
-    "<strong>16 种块类型 + 3 类审阅问题</strong>全部由 report.json 驱动渲染，页面代码不含任何正文。",
-    "设计令牌（配色、字体栈、字号、行高、栏宽）与 template.html 逐项一致，四语切换仅改 <code>lang</code> 字段。",
+    "<strong>15 种块类型 + 3 类审阅问题</strong>全部由 report.json 驱动渲染，页面代码不含任何正文。",
+    "正文锁定核心阅读宽度；大型表格与流程图以 1.35 倍栏宽突破，更宽的内容走站内滑条横向滚动，左侧目录跟随阅读进度。",
+    "图示全部来自 Mermaid 源码：流程图、饼图、趋势图、时序图经 <code>tools/diagram.ts</code>（Pele）渲染并自动套用页面令牌。",
     "审阅表单具备完整状态机：进度统计、缺答高亮、二次提交跳过、答案暂存与复制导出。"
   ],
   "sections": [
     {
+      "id": "data",
       "heading": "数据组件",
       "blocks": [
-        { "type": "p", "text": "以下表格、条形图与数字行覆盖数据类组件的典型形态。" },
+        {
+          "type": "p",
+          "text": "以下数字行、表格与条形图覆盖数据类组件的典型形态。"
+        },
         {
           "type": "figures",
           "items": [
-            { "value": "16 种", "label": "块类型" },
-            { "value": "3 类", "label": "审阅问题" },
-            { "value": "1 个", "label": "index.html 产物" }
+            {
+              "value": "15 种",
+              "label": "块类型"
+            },
+            {
+              "value": "4 类",
+              "label": "Mermaid 图"
+            },
+            {
+              "value": "3 类",
+              "label": "审阅问题"
+            }
           ]
         },
         {
           "type": "table",
-          "columns": ["组件", "数据来源", "判定", "备注"],
+          "columns": ["组件", "数据来源", "数量", "备注"],
           "num": [2],
           "rows": [
             [
               "表格（本表）",
-              "report.json → Block.svelte",
+              "columns + rows + num",
               "1",
-              "<span class=\"chip ok\">对齐</span>"
+              "<span class=\"chip ok\">num 列右对齐</span>"
             ],
-            ["数字行", "figures 块", "1", "<span class=\"chip ok\">对齐</span>"],
-            ["条形图", "bars 块，值由 schema 计算", "1", "<span class=\"chip warn\">待验</span>"],
-            ["对比卡", "compare 块", "0", "<span class=\"chip risk\">未验</span>"]
+            ["数字行", "figures 块", "1", "<span class=\"chip accent\">单位写进数值</span>"],
+            ["条形图", "bars 块，值由 max 归一", "1", "<span class=\"chip warn\">演示数据</span>"],
+            ["对比卡", "compare 块（见下文）", "1", "<span class=\"chip\">可选标记</span>"]
           ]
         },
         {
           "type": "bars",
           "items": [
-            { "label": "template.html", "value": 1191, "display": "1191 行" },
-            { "label": "app.css", "value": 430, "display": "430 行" },
-            { "label": "Block.svelte", "value": 520, "display": "520 行" },
-            { "label": "Review.svelte", "value": 830, "display": "830 行" }
+            {
+              "label": "阅读类（p/列表/提示/卡片等）",
+              "value": 9,
+              "display": "9 种"
+            },
+            {
+              "label": "数据类（figures/table/bars）",
+              "value": 3,
+              "display": "3 种"
+            },
+            {
+              "label": "图示类（figure/swatch）",
+              "value": 2,
+              "display": "2 种"
+            },
+            {
+              "label": "权衡类（compare）",
+              "value": 1,
+              "display": "1 种"
+            }
           ]
         }
       ]
     },
     {
+      "id": "reading",
       "heading": "阅读组件",
       "blocks": [
         {
@@ -56,13 +87,25 @@
           "variant": "warn",
           "text": "<strong>提示条使用真实状态才上色。</strong>plain 用于普通说明，ok/warn/risk 仅在状态属实时使用。"
         },
-        { "type": "card", "text": "卡片用于需要边框的独立补充说明，每页少量使用。" },
+        {
+          "type": "card",
+          "text": "卡片用于需要边框的独立补充说明，每页少量使用。"
+        },
         {
           "type": "kv",
           "entries": [
-            { "k": "所有者", "v": "fang2hou/report-kit" },
-            { "k": "基线", "v": "PR #1 合并后的 main（152e1d1）" },
-            { "k": "令牌来源", "v": "html-report skill assets/template.html" }
+            {
+              "k": "所有者",
+              "v": "fang2hou/agent-report-kit"
+            },
+            {
+              "k": "令牌来源",
+              "v": "src/app.css @theme（Tailwind v4）"
+            },
+            {
+              "k": "字体栈",
+              "v": "按 lang 切换（en / zh / ja）"
+            }
           ]
         },
         {
@@ -74,24 +117,113 @@
         {
           "type": "steps",
           "items": [
-            "_agent_ 写 report.json，不写 HTML。",
+            "<em>Agent</em> 写 report.json，不写 HTML。",
             "渲染器按 lang 选择字体栈与界面文案。",
-            "构建产出单文件 index.html，file:// 直接分发。"
+            "构建产出单文件 index.html，可经任意静态服务器分发。"
           ]
         },
         {
           "type": "details",
-          "summary": "验收命令与输出",
-          "pre": "$ mise run check && pnpm build\n$ wc -c build/index.html"
+          "summary": "构建命令与输出",
+          "pre": "$ mise run check && pnpm build\n$ node tools/diagram.ts flow.mmd flow.svg"
         },
         {
           "type": "figure",
-          "svg": "<svg viewBox=\"0 0 520 90\" role=\"img\" aria-label=\"渲染管线：JSON 到组件到单文件\" font-family=\"inherit\" font-size=\"15\"><g fill=\"none\" stroke=\"var(--line-2)\" stroke-width=\"1.5\"><rect x=\"1\" y=\"20\" width=\"120\" height=\"48\" rx=\"8\"/><rect x=\"200\" y=\"20\" width=\"120\" height=\"48\" rx=\"8\"/><rect x=\"399\" y=\"20\" width=\"120\" height=\"48\" rx=\"8\"/><path d=\"M121 44h79M320 44h79\" stroke=\"var(--accent)\"/></g><g fill=\"currentColor\" text-anchor=\"middle\"><text x=\"61\" y=\"49\">report.json</text><text x=\"260\" y=\"49\">组件库</text><text x=\"459\" y=\"49\">index.html</text></g></svg>",
-          "caption": "图：渲染管线。纯客户端渲染，无服务器依赖。"
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 376 451\" width=\"376\" height=\"451\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:17px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,&quot;IBM Plex Sans&quot;, &quot;IBM Plex Sans SC&quot;, &quot;IBM Plex Sans JP&quot;, &quot;PingFang SC&quot;, sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M213.46,58L213.46,126\"/><path class=\"pele-marker\" d=\"M213.46,133L210.1,125L216.82,125Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_B_C_0\"><path d=\"M213.46,183L213.46,224\"/><path class=\"pele-marker\" d=\"M213.46,231L210.1,223L216.82,223Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_C_D_0\"><path d=\"M197.46,307.5C197.46,322.75 68.5,322.75 68.5,338L68.5,385.5\"/><path class=\"pele-marker\" d=\"M68.5,392.5L65.14,384.5L71.86,384.5Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_C_E_0\"><path d=\"M213.46,317.5L213.46,385.5\"/><path class=\"pele-marker\" d=\"M213.46,392.5L210.1,384.5L216.82,384.5Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_C_F_0\"><path d=\"M229.46,307.5C229.46,322.75 332.92,322.75 332.92,338L332.92,385.5\"/><path class=\"pele-marker\" d=\"M332.92,392.5L329.56,384.5L336.28,384.5Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-edge-labels\" font-size=\"15\"><g class=\"pele-edge-label\" data-id=\"L_A_B_0\"><rect x=\"186.96\" y=\"80.5\" width=\"53\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"213.46\" y=\"97.25\" text-anchor=\"middle\">拿到钱</text></g><g class=\"pele-edge-label\" data-id=\"L_C_D_0\"><rect x=\"49.5\" y=\"340\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"68.5\" y=\"356.75\" text-anchor=\"middle\">选一</text></g><g class=\"pele-edge-label\" data-id=\"L_C_E_0\"><rect x=\"194.46\" y=\"340\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"213.46\" y=\"356.75\" text-anchor=\"middle\">选二</text></g><g class=\"pele-edge-label\" data-id=\"L_C_F_0\"><rect x=\"313.92\" y=\"340\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"332.92\" y=\"356.75\" text-anchor=\"middle\">选三</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(213.46,33)\"><rect x=\"-43.5\" y=\"-25\" width=\"87\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">圣诞节</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"B\" transform=\"translate(213.46,158)\"><rect x=\"-43.5\" y=\"-25\" width=\"87\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">去购物</text></g><g class=\"pele-node pele-shape-diam\" data-id=\"C\" transform=\"translate(213.46,274.25)\"><polygon points=\"0,-43.25 69.2,0 0,43.25 -69.2,0\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">让我想想</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"D\" transform=\"translate(68.5,417.5)\"><rect x=\"-60.5\" y=\"-25\" width=\"121\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">笔记本电脑</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"E\" transform=\"translate(213.46,417.5)\"><rect x=\"-44.46\" y=\"-25\" width=\"88.92\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">iPhone</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"F\" transform=\"translate(332.92,417.5)\"><rect x=\"-35\" y=\"-25\" width=\"70\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">汽车</text></g></g></svg>",
+          "caption": "图：分支流程（flowchart TD），经 tools/diagram.ts 渲染，配色由页面令牌映射。"
         }
       ]
     },
     {
+      "id": "charts",
+      "heading": "图表能力",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "饼图、趋势图与时序图同样来自 Mermaid 源码，一条命令完成渲染；系列色映射到设计令牌，不产生固定色值。"
+        },
+        {
+          "type": "figure",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-pie\" viewBox=\"0 0 374 298\" width=\"374\" height=\"298\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:17px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,&quot;IBM Plex Sans&quot;, &quot;IBM Plex Sans SC&quot;, &quot;IBM Plex Sans JP&quot;, &quot;PingFang SC&quot;, sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"pie\"><text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"187\" y=\"26.95\">块类型分布</tspan></text><g class=\"pele-slices\" transform=\"translate(128,170)\" stroke=\"var(--_bg)\" stroke-width=\"1\" stroke-linejoin=\"round\"><path class=\"pele-slice\" data-id=\"阅读类\" d=\"M0,0L0,-120A120,120 0 1 1 -70.53,97.08Z\" fill=\"var(--pele-series-1,#4c78a8)\"/><path class=\"pele-slice\" data-id=\"数据类\" d=\"M0,0L-70.53,97.08A120,120 0 0 1 -114.13,-37.08Z\" fill=\"var(--pele-series-2,#f58518)\"/><path class=\"pele-slice\" data-id=\"图示类\" d=\"M0,0L-114.13,-37.08A120,120 0 0 1 -48.81,-109.63Z\" fill=\"var(--pele-series-3,#54a24b)\"/><path class=\"pele-slice\" data-id=\"权衡类\" d=\"M0,0L-48.81,-109.63A120,120 0 0 1 0,-120Z\" fill=\"var(--pele-series-4,#e45756)\"/></g><g class=\"pele-slice-labels\" transform=\"translate(128,170)\" font-size=\"15\" text-anchor=\"middle\" fill=\"var(--_bg)\"><text x=\"85.6\" y=\"33.06\">60%</text><text x=\"-85.6\" y=\"33.06\">20%</text><text x=\"-66.88\" y=\"-54.97\">13%</text><text x=\"-18.71\" y=\"-82.78\">7%</text></g><g class=\"pele-legend\" font-size=\"15\"><g class=\"pele-legend-item\" data-id=\"阅读类\"><rect x=\"280\" y=\"125\" width=\"12\" height=\"12\" rx=\"2\" fill=\"var(--pele-series-1,#4c78a8)\"/><text x=\"332.93\" y=\"136.25\" text-anchor=\"middle\">阅读类 [9]</text></g><g class=\"pele-legend-item\" data-id=\"数据类\"><rect x=\"280\" y=\"151\" width=\"12\" height=\"12\" rx=\"2\" fill=\"var(--pele-series-2,#f58518)\"/><text x=\"332.93\" y=\"162.25\" text-anchor=\"middle\">数据类 [3]</text></g><g class=\"pele-legend-item\" data-id=\"图示类\"><rect x=\"280\" y=\"177\" width=\"12\" height=\"12\" rx=\"2\" fill=\"var(--pele-series-3,#54a24b)\"/><text x=\"332.93\" y=\"188.25\" text-anchor=\"middle\">图示类 [2]</text></g><g class=\"pele-legend-item\" data-id=\"权衡类\"><rect x=\"280\" y=\"203\" width=\"12\" height=\"12\" rx=\"2\" fill=\"var(--pele-series-4,#e45756)\"/><text x=\"332.93\" y=\"214.25\" text-anchor=\"middle\">权衡类 [1]</text></g></g></svg>",
+          "caption": "图：饼图（pie showData）展示块类型占比，标签直接标注。"
+        },
+        {
+          "type": "figure",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-xychart\" viewBox=\"0 0 700 500\" width=\"700\" height=\"500\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_tw:var(--pele-title-weight,bold);--_fm:var(--pele-font-mono,monospace);font:17px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,&quot;IBM Plex Sans&quot;, &quot;IBM Plex Sans SC&quot;, &quot;IBM Plex Sans JP&quot;, &quot;PingFang SC&quot;, sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"xychart\"><text class=\"pele-title\" font-weight=\"var(--_tw)\" text-anchor=\"middle\" xml:space=\"preserve\"><tspan x=\"350\" y=\"26.95\">近六次构建产物体积（KB）</tspan></text><path class=\"pele-grid\" d=\"M72.02,461H692M72.02,403.36H692M72.02,345.71H692M72.02,288.07H692M72.02,230.43H692M72.02,172.79H692M72.02,115.14H692M72.02,57.5H692\" stroke=\"var(--_a)\"/><g class=\"pele-plot\"><g class=\"pele-series pele-line\" fill=\"var(--pele-series-1,#4c78a8)\"><path d=\"M123.69,265.01L227.02,311.13L330.35,230.43L433.67,339.95L537.01,241.96L640.33,207.37\" fill=\"none\" stroke=\"var(--pele-series-1,#4c78a8)\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"123.69\" cy=\"265.01\" r=\"3\"/><circle cx=\"227.02\" cy=\"311.13\" r=\"3\"/><circle cx=\"330.35\" cy=\"230.43\" r=\"3\"/><circle cx=\"433.67\" cy=\"339.95\" r=\"3\"/><circle cx=\"537.01\" cy=\"241.96\" r=\"3\"/><circle cx=\"640.33\" cy=\"207.37\" r=\"3\"/></g></g><path class=\"pele-axis\" d=\"M72.02,57.5V461M72.02,461H692M72.02,461h-4M72.02,403.36h-4M72.02,345.71h-4M72.02,288.07h-4M72.02,230.43h-4M72.02,172.79h-4M72.02,115.14h-4M72.02,57.5h-4M123.69,461v4M227.02,461v4M330.35,461v4M433.67,461v4M537.01,461v4M640.33,461v4\" fill=\"none\" stroke=\"var(--_b)\"/><g class=\"pele-axis-labels\" font-size=\"15\" fill=\"var(--_m)\"><text x=\"62.02\" y=\"466.25\" text-anchor=\"end\">150</text><text x=\"62.02\" y=\"408.61\" text-anchor=\"end\">160</text><text x=\"62.02\" y=\"350.96\" text-anchor=\"end\">170</text><text x=\"62.02\" y=\"293.32\" text-anchor=\"end\">180</text><text x=\"62.02\" y=\"235.68\" text-anchor=\"end\">190</text><text x=\"62.02\" y=\"178.04\" text-anchor=\"end\">200</text><text x=\"62.02\" y=\"120.39\" text-anchor=\"end\">210</text><text x=\"62.02\" y=\"62.75\" text-anchor=\"end\">220</text><text x=\"123.69\" y=\"485.75\" text-anchor=\"middle\">v51</text><text x=\"227.02\" y=\"485.75\" text-anchor=\"middle\">v52</text><text x=\"330.35\" y=\"485.75\" text-anchor=\"middle\">v53</text><text x=\"433.67\" y=\"485.75\" text-anchor=\"middle\">v54</text><text x=\"537.01\" y=\"485.75\" text-anchor=\"middle\">v55</text><text x=\"640.33\" y=\"485.75\" text-anchor=\"middle\">v56</text></g><g class=\"pele-axis-titles\" font-size=\"15\"><g transform=\"translate(19.5,259.25) rotate(-90)\"><text x=\"0\" y=\"5.25\" text-anchor=\"middle\">KB</text></g></g></svg>",
+          "caption": "图：趋势图（xychart-beta）展示近六次构建产物体积，单位 KB。"
+        },
+        {
+          "type": "figure",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-sequence\" viewBox=\"0 0 549 407\" width=\"549\" height=\"407\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:17px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,&quot;IBM Plex Sans&quot;, &quot;IBM Plex Sans SC&quot;, &quot;IBM Plex Sans JP&quot;, &quot;PingFang SC&quot;, sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"sequence\"><g transform=\"translate(41,8)\"><g class=\"pele-lifelines\" fill=\"none\" stroke=\"var(--_b)\"><path class=\"pele-lifeline\" data-id=\"U\" d=\"M0,46V345\"/><path class=\"pele-lifeline\" data-id=\"P\" d=\"M155,46V345\"/><path class=\"pele-lifeline\" data-id=\"S\" d=\"M306.72,46V345\"/><path class=\"pele-lifeline\" data-id=\"A\" d=\"M461.72,46V345\"/></g><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge pele-message\" data-id=\"i1\"><path d=\"M8,91H148\"/><path class=\"pele-marker\" d=\"M155,91L147,94.36L147,87.64Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"-8\" y=\"83\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"0\" y=\"95.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">1</text></g></g><g class=\"pele-edge pele-message\" data-id=\"i2\"><path d=\"M163,130H299.72\"/><path class=\"pele-marker\" d=\"M306.72,130L298.72,133.36L298.72,126.64Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"147\" y=\"122\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"155\" y=\"134.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">2</text></g></g><g class=\"pele-edge pele-message\" data-id=\"i3\"><path d=\"M8,169H148\"/><path class=\"pele-marker\" d=\"M155,169L147,172.36L147,165.64Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"-8\" y=\"161\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"0\" y=\"173.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">3</text></g></g><g class=\"pele-edge pele-message\" data-id=\"i4\"><path d=\"M163,208H299.72\"/><path class=\"pele-marker\" d=\"M306.72,208L298.72,211.36L298.72,204.64Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"147\" y=\"200\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"155\" y=\"212.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">4</text></g></g><g class=\"pele-edge pele-message\" data-id=\"i5\"><path d=\"M453.72,247H313.72\"/><path class=\"pele-marker\" d=\"M306.72,247L314.72,243.64L314.72,250.36Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"453.72\" y=\"239\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"461.72\" y=\"251.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">5</text></g></g><g class=\"pele-edge pele-message\" data-id=\"i6\"><path d=\"M298.72,286H162\" stroke-dasharray=\"4 4\"/><path class=\"pele-marker\" d=\"M155,286L163,282.64L163,289.36Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"298.72\" y=\"278\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"306.72\" y=\"290.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">6</text></g></g><g class=\"pele-edge pele-message\" data-id=\"i7\"><path d=\"M147,325H7\" stroke-dasharray=\"4 4\"/><path class=\"pele-marker\" d=\"M0,325L8,321.64L8,328.36Z\" fill=\"var(--_l)\" stroke=\"none\"/><g class=\"pele-sequence-number\"><rect x=\"147\" y=\"317\" width=\"16\" height=\"16\" rx=\"8\" fill=\"var(--_l)\" stroke=\"none\"/><text x=\"155\" y=\"329.55\" text-anchor=\"middle\" font-size=\"13\" fill=\"var(--_bg)\" stroke=\"none\">7</text></g></g></g><g class=\"pele-edge-labels\" font-size=\"15\"><g class=\"pele-edge-label\" data-id=\"i1\"><text x=\"81.5\" y=\"80.75\" text-anchor=\"middle\">填写审阅表单</text></g><g class=\"pele-edge-label\" data-id=\"i2\"><text x=\"234.86\" y=\"119.75\" text-anchor=\"middle\">PUT /api/state</text></g><g class=\"pele-edge-label\" data-id=\"i3\"><text x=\"81.5\" y=\"158.75\" text-anchor=\"middle\">划词提问</text></g><g class=\"pele-edge-label\" data-id=\"i4\"><text x=\"234.86\" y=\"197.75\" text-anchor=\"middle\">POST /api/chat</text></g><g class=\"pele-edge-label\" data-id=\"i5\"><text x=\"380.22\" y=\"236.75\" text-anchor=\"middle\">轮询并写回回复</text></g><g class=\"pele-edge-label\" data-id=\"i6\"><text x=\"226.86\" y=\"275.75\" text-anchor=\"middle\">新消息到达</text></g><g class=\"pele-edge-label\" data-id=\"i7\"><text x=\"73.5\" y=\"314.75\" text-anchor=\"middle\">高亮处显示回复</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-actor pele-actor-participant pele-actor-footer\" data-id=\"U\"><rect x=\"-33\" y=\"345\" width=\"66\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"373.95\" text-anchor=\"middle\">用户</text></g><g class=\"pele-node pele-actor pele-actor-participant pele-actor-footer\" data-id=\"P\"><rect x=\"113.5\" y=\"345\" width=\"83\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"155\" y=\"373.95\" text-anchor=\"middle\">报告页</text></g><g class=\"pele-node pele-actor pele-actor-participant pele-actor-footer\" data-id=\"S\"><rect x=\"260.96\" y=\"345\" width=\"91.52\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"306.72\" y=\"373.95\" text-anchor=\"middle\">serve.ts</text></g><g class=\"pele-node pele-actor pele-actor-participant pele-actor-footer\" data-id=\"A\"><rect x=\"423.5\" y=\"345\" width=\"76.42\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"461.72\" y=\"373.95\" text-anchor=\"middle\">Agent</text></g><g class=\"pele-node pele-actor pele-actor-participant\" data-id=\"U\"><rect x=\"-33\" y=\"0\" width=\"66\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"28.95\" text-anchor=\"middle\">用户</text></g><g class=\"pele-node pele-actor pele-actor-participant\" data-id=\"P\"><rect x=\"113.5\" y=\"0\" width=\"83\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"155\" y=\"28.95\" text-anchor=\"middle\">报告页</text></g><g class=\"pele-node pele-actor pele-actor-participant\" data-id=\"S\"><rect x=\"260.96\" y=\"0\" width=\"91.52\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"306.72\" y=\"28.95\" text-anchor=\"middle\">serve.ts</text></g><g class=\"pele-node pele-actor pele-actor-participant\" data-id=\"A\"><rect x=\"423.5\" y=\"0\" width=\"76.42\" height=\"46\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"461.72\" y=\"28.95\" text-anchor=\"middle\">Agent</text></g></g></g></svg>",
+          "caption": "图：时序图（sequenceDiagram）展示审阅往返的消息流。"
+        }
+      ]
+    },
+    {
+      "id": "wide",
+      "heading": "宽幅内容与横向滚动",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "正文宽度服务于阅读专注；大型表格与长流程图以 <strong>1.35 倍核心宽度</strong>向两侧展开，仍超出部分在站内滑条中横向滚动——滑条自动隐藏、不占布局、不移动任何页面元素。"
+        },
+        {
+          "type": "table",
+          "wide": true,
+          "columns": ["组件", "源文件", "职责", "调用方", "渲染时机", "判定"],
+          "rows": [
+            [
+              "Block",
+              "<code>src/lib/components/Block.svelte</code>",
+              "全部块类型的渲染",
+              "+page / styleguide",
+              "SSR",
+              "<span class=\"chip ok\">稳定</span>"
+            ],
+            [
+              "Review",
+              "<code>src/lib/components/Review.svelte</code>",
+              "审阅表单与提交",
+              "+page",
+              "SSR + 水合",
+              "<span class=\"chip ok\">稳定</span>"
+            ],
+            [
+              "Chat",
+              "<code>src/lib/components/Chat.svelte</code>",
+              "划词问答与讨论",
+              "+page",
+              "运行时注入",
+              "<span class=\"chip accent\">按需</span>"
+            ],
+            [
+              "Toc",
+              "<code>src/lib/components/Toc.svelte</code>",
+              "阅读进度目录",
+              "+page",
+              "SSR + 水合",
+              "<span class=\"chip warn\">新增</span>"
+            ],
+            [
+              "Scroller",
+              "<code>src/lib/components/Scroller.svelte</code>",
+              "站内横向滚动条",
+              "Block",
+              "SSR + 水合",
+              "<span class=\"chip warn\">新增</span>"
+            ]
+          ]
+        },
+        {
+          "type": "figure",
+          "wide": true,
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"pele pele-flowchart\" viewBox=\"0 0 1378 151\" width=\"1378\" height=\"151\" style=\"max-width:100%;height:auto;--_bg:var(--pele-bg,#fff);--_fg:var(--pele-fg,#1f1f1f);--_m:var(--pele-muted,#6e6e6e);--_l:var(--pele-line,#1f1f1f);--_s:var(--pele-surface,#f3f3f3);--_a:var(--pele-surface-alt,#e6e6e6);--_b:var(--pele-border,#8a8a8a);--_c:var(--pele-accent,#5b7bd5);color:var(--_fg);--_r:var(--pele-radius,4px);--_fm:var(--pele-font-mono,monospace);font:17px sans-serif;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;font-family:var(--pele-font,&quot;IBM Plex Sans&quot;, &quot;IBM Plex Sans SC&quot;, &quot;IBM Plex Sans JP&quot;, &quot;PingFang SC&quot;, sans-serif)\" fill=\"var(--_fg)\" role=\"graphics-document document\" aria-roledescription=\"flowchart\"><g class=\"pele-edges\" fill=\"none\" stroke=\"var(--_l)\" stroke-linecap=\"round\"><g class=\"pele-edge\" data-id=\"L_A_B_0\"><path d=\"M112,100.53L153,100.53\"/><path class=\"pele-marker\" d=\"M160,100.53L152,103.89L152,97.17Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_B_C_0\"><path d=\"M264,87.53L277,87.53C289.5,87.53 289.5,54.25 302,54.25L366.2,54.25\"/><path class=\"pele-marker\" d=\"M373.2,54.25L365.2,57.61L365.2,50.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_C_D_0\"><path d=\"M458.4,66.25L541.4,66.25\"/><path class=\"pele-marker\" d=\"M548.4,66.25L540.4,69.61L540.4,62.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_C_B_0\"><path d=\"M360.4,70.25L348.63,70.25C341.07,70.25 341.07,100.53 333.5,100.53L271,100.53\"/><path class=\"pele-marker\" d=\"M264,100.53L272,97.17L272,103.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_D_E_0\"><path d=\"M618.4,58.25L631.4,58.25C642.4,58.25 642.4,33 653.4,33L659.4,33\"/><path class=\"pele-marker\" d=\"M666.4,33L658.4,36.36L658.4,29.64Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_E_F_0\"><path d=\"M736.4,33C760.3,33 760.3,58.25 784.2,58.25L790.2,58.25\"/><path class=\"pele-marker\" d=\"M797.2,58.25L789.2,61.61L789.2,54.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_F_D_0\"><path d=\"M797.2,74.25L784.2,74.25C760.3,74.25 760.3,99.5 736.4,99.5L666.4,99.5C648.9,99.5 648.9,74.25 631.4,74.25L625.4,74.25\"/><path class=\"pele-marker\" d=\"M618.4,74.25L626.4,70.89L626.4,77.61Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_F_G_0\"><path d=\"M939.8,66.25L1022.8,66.25\"/><path class=\"pele-marker\" d=\"M1029.8,66.25L1021.8,69.61L1021.8,62.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_G_H_0\"><path d=\"M1099.8,66.25L1140.8,66.25\"/><path class=\"pele-marker\" d=\"M1147.8,66.25L1139.8,69.61L1139.8,62.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_H_I_0\"><path d=\"M1251.8,66.25C1269.3,66.25 1269.3,96.53 1286.8,96.53L1292.8,96.53\"/><path class=\"pele-marker\" d=\"M1299.8,96.53L1291.8,99.89L1291.8,93.17Z\" fill=\"var(--_l)\" stroke=\"none\"/></g><g class=\"pele-edge\" data-id=\"L_I_B_0\"><path d=\"M1299.8,112.53L1286.8,112.53C1269.3,112.53 1269.3,142.81 1251.8,142.81L302,142.81C289.5,142.81 289.5,113.53 277,113.53L271,113.53\"/><path class=\"pele-marker\" d=\"M264,113.53L272,110.17L272,116.89Z\" fill=\"var(--_l)\" stroke=\"none\"/></g></g><g class=\"pele-edge-labels\" font-size=\"15\"><g class=\"pele-edge-label\" data-id=\"L_C_D_0\"><rect x=\"480.9\" y=\"54.75\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"499.9\" y=\"71.5\" text-anchor=\"middle\">通过</text></g><g class=\"pele-edge-label\" data-id=\"L_C_B_0\"><rect x=\"293.5\" y=\"89.03\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"312.5\" y=\"105.78\" text-anchor=\"middle\">修改</text></g><g class=\"pele-edge-label\" data-id=\"L_F_D_0\"><rect x=\"682.4\" y=\"88\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"701.4\" y=\"104.75\" text-anchor=\"middle\">失败</text></g><g class=\"pele-edge-label\" data-id=\"L_F_G_0\"><rect x=\"962.3\" y=\"54.75\" width=\"38\" height=\"23\" rx=\"3\" fill=\"var(--_bg)\"/><text x=\"981.3\" y=\"71.5\" text-anchor=\"middle\">通过</text></g></g><g class=\"pele-nodes\"><g class=\"pele-node pele-shape-rect\" data-id=\"A\" transform=\"translate(60,100.53)\"><rect x=\"-52\" y=\"-25\" width=\"104\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">需求收集</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"B\" transform=\"translate(212,100.53)\"><rect x=\"-52\" y=\"-25\" width=\"104\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">方案设计</text></g><g class=\"pele-node pele-shape-diam\" data-id=\"C\" transform=\"translate(406.2,66.25)\"><polygon points=\"0,-32.62 52.2,0 0,32.63 -52.2,0\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">评审</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"D\" transform=\"translate(583.4,66.25)\"><rect x=\"-35\" y=\"-25\" width=\"70\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">实现</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"E\" transform=\"translate(701.4,33)\"><rect x=\"-35\" y=\"-25\" width=\"70\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">构建</text></g><g class=\"pele-node pele-shape-diam\" data-id=\"F\" transform=\"translate(862.1,66.25)\"><polygon points=\"0,-48.56 77.7,0 0,48.56 -77.7,0\" fill=\"var(--_s)\" stroke=\"var(--_b)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">自动化检查</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"G\" transform=\"translate(1064.8,66.25)\"><rect x=\"-35\" y=\"-25\" width=\"70\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">发布</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"H\" transform=\"translate(1199.8,66.25)\"><rect x=\"-52\" y=\"-25\" width=\"104\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">线上观测</text></g><g class=\"pele-node pele-shape-rect\" data-id=\"I\" transform=\"translate(1334.8,104.53)\"><rect x=\"-35\" y=\"-25\" width=\"70\" height=\"50\" fill=\"var(--_s)\" stroke=\"var(--_b)\" style=\"rx:var(--_r)\"/><text class=\"pele-label\" x=\"0\" y=\"5.95\" text-anchor=\"middle\">反馈</text></g></g></svg>",
+          "caption": "图：跨向研发生命周期（flowchart LR，1378px）——超出宽幅后由站内滑条接管，可拖动滑块或用触控板/Shift+滚轮平移。"
+        }
+      ]
+    },
+    {
+      "id": "compare",
       "heading": "权衡组件",
       "blocks": [
         {
@@ -102,13 +234,13 @@
               "pick": true,
               "badge": "推荐",
               "heading": "继续组件库路线",
-              "text": "agent 只写 JSON，渲染与主题由固定组件库保证。",
+              "text": "Agent 只写 JSON，渲染与主题由固定组件库保证。",
               "pros": ["正文与样式彻底分离", "多语言天然支持", "升级渲染器不改动历史报告"],
-              "cons": ["初始组件开发成本已付", "schema 演进需要版本管理"]
+              "cons": ["组件开发成本前置", "schema 演进需要版本管理"]
             },
             {
-              "heading": "回退单文件模板",
-              "text": "每份报告继续由 agent 直接产出完整 HTML。",
+              "heading": "回退手工模板",
+              "text": "每份报告由 Agent 直接产出完整 HTML。",
               "pros": ["无需维护渲染器"],
               "cons": ["样式漂移无人拦截", "多语言靠手工", "体积与一致性不可控"]
             }
@@ -117,20 +249,78 @@
       ]
     },
     {
-      "heading": "多语言机制",
+      "id": "style",
+      "heading": "样式决策画廊",
       "blocks": [
         {
           "type": "p",
-          "text": "界面文案（结论、待决问题、提交、进度等）按 <code>report.lang</code> 查表，英文兜底；正文本身就是数据，不经过翻译层。"
+          "text": "需要用户在多个候选之间做样式抉择时，把每个候选写成一小段 HTML，交给 <strong>swatch</strong> 块逐格渲染；配合审阅问题即可完成一次可视化决策。悬停可体验各候选的交互态。"
+        },
+        {
+          "type": "swatch",
+          "wide": true,
+          "items": [
+            {
+              "label": "A · 实底",
+              "html": "<style>.sw-a:hover{filter:brightness(1.14)}</style><button class=\"sw-a\" type=\"button\" style=\"border:0;border-radius:8px;background:var(--color-accent);color:#fff;padding:8px 18px;font:600 14px var(--ui);cursor:pointer\">确认</button>"
+            },
+            {
+              "label": "B · 描边",
+              "html": "<style>.sw-b:hover{background:var(--color-accent);color:#fff}</style><button class=\"sw-b\" type=\"button\" style=\"border:1.5px solid var(--color-accent);border-radius:8px;background:transparent;color:var(--color-accent);padding:7px 17px;font:600 14px var(--ui);cursor:pointer;transition:background .15s,color .15s\">确认</button>"
+            },
+            {
+              "label": "C · 柔和底",
+              "html": "<style>.sw-c:hover{background:var(--color-accent-soft)}</style><button class=\"sw-c\" type=\"button\" style=\"border:0;border-radius:8px;background:var(--color-sunk);color:var(--color-accent);padding:8px 18px;font:600 14px var(--ui);cursor:pointer;transition:background .15s\">确认</button>"
+            },
+            {
+              "label": "D · 胶囊",
+              "html": "<style>.sw-d:hover{filter:brightness(1.14)}</style><button class=\"sw-d\" type=\"button\" style=\"border:0;border-radius:999px;background:var(--color-accent);color:#fff;padding:8px 20px;font:600 14px var(--ui);cursor:pointer\">确认</button>"
+            },
+            {
+              "label": "E · 浮起",
+              "html": "<style>.sw-e:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgb(40 48 59 / .18)}</style><button class=\"sw-e\" type=\"button\" style=\"border:1px solid var(--color-line-2);border-radius:8px;background:var(--color-surface);color:var(--color-ink);padding:8px 18px;font:600 14px var(--ui);cursor:pointer;box-shadow:0 4px 18px rgb(40 48 59 / .08);transition:transform .15s,box-shadow .15s\">确认</button>"
+            },
+            {
+              "label": "F · 双线",
+              "html": "<style>.sw-f:hover{border-color:var(--color-accent)}</style><button class=\"sw-f\" type=\"button\" style=\"border:3px double var(--color-line-2);border-radius:10px;background:transparent;color:var(--color-ink);padding:6px 16px;font:600 14px var(--ui);cursor:pointer;transition:border-color .15s\">确认</button>"
+            },
+            {
+              "label": "G · 底线",
+              "html": "<style>.sw-g:hover{background:var(--color-sunk)}</style><button class=\"sw-g\" type=\"button\" style=\"border:0;border-bottom:2px solid var(--color-accent);border-radius:0;background:transparent;color:var(--color-ink);padding:8px 14px;font:600 14px var(--ui);cursor:pointer;transition:background .15s\">确认</button>"
+            },
+            {
+              "label": "H · 圆形",
+              "html": "<style>.sw-h:hover{background:var(--color-accent-soft);color:var(--color-accent)}</style><button class=\"sw-h\" type=\"button\" aria-label=\"确认\" style=\"width:40px;height:40px;border:1px solid var(--color-line-2);border-radius:50%;background:var(--color-surface);color:var(--color-ink);font:600 16px var(--ui);cursor:pointer;transition:background .15s,color .15s\">✓</button>"
+            },
+            {
+              "label": "I · 迷你",
+              "html": "<style>.sw-i:hover{filter:brightness(1.14)}</style><button class=\"sw-i\" type=\"button\" style=\"border:0;border-radius:6px;background:var(--color-accent);color:#fff;padding:3px 10px;font:600 12px var(--ui);cursor:pointer\">确认</button>"
+            },
+            {
+              "label": "J · 墨色",
+              "html": "<style>.sw-j:hover{background:var(--color-accent)}</style><button class=\"sw-j\" type=\"button\" style=\"border:0;border-radius:8px;background:var(--color-ink);color:#fff;padding:8px 18px;font:600 14px var(--ui);cursor:pointer;transition:background .15s\">确认</button>"
+            }
+          ]
         }
       ]
     },
     {
-      "heading": "验收结论",
+      "id": "i18n",
+      "heading": "多语言机制",
       "blocks": [
         {
           "type": "p",
-          "text": "以上组件在 zh-CN 字体栈下与模板目视对齐后，本阶段即可合并；ja/en 构建抽查另做。"
+          "text": "界面文案（结论、待决问题、提交、进度、目录等）按 <code>report.lang</code> 查表，英文兜底；正文本身就是数据，不经过翻译层。"
+        }
+      ]
+    },
+    {
+      "id": "scope",
+      "heading": "使用边界",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "组件库覆盖结构化表达：一屏一个决定，正文留在窄栏。超出组件形状的内容应先改写内容，而不是引入自定义标记；样式候选预览是唯一放行原始 HTML 的场景。"
         }
       ]
     }
@@ -139,52 +329,121 @@
     "questions": [
       {
         "type": "choice",
-        "id": "phase2-accept",
-        "text": "Phase 2 视觉对齐是否验收通过？",
-        "hint": "以本页各组件与 template.html 的目视一致性为准。",
+        "id": "release-readiness",
+        "text": "本页组件呈现是否达到对外发布标准？",
+        "hint": "以各组件的可读性与交互为准，可对照 /#/styleguide 预览。",
         "cols": true,
         "note": true,
         "options": [
-          { "value": "accept", "label": "验收通过", "desc": "合并本阶段，进入 Phase 3" },
-          { "value": "revise", "label": "还需修改", "desc": "在备注里指出未对齐项" }
+          {
+            "value": "ready",
+            "label": "达到",
+            "desc": "按当前组件集合对外发布"
+          },
+          {
+            "value": "revise",
+            "label": "还需修改",
+            "desc": "在备注里指出具体组件"
+          }
+        ]
+      },
+      {
+        "type": "choice",
+        "id": "button-style",
+        "text": "样式画廊里选哪个按钮方案？",
+        "hint": "候选 A–J 见「样式决策画廊」；悬停可看交互态。",
+        "cols": true,
+        "note": true,
+        "options": [
+          {
+            "value": "a",
+            "label": "A · 实底"
+          },
+          {
+            "value": "d",
+            "label": "D · 胶囊"
+          },
+          {
+            "value": "e",
+            "label": "E · 浮起"
+          },
+          {
+            "value": "j",
+            "label": "J · 墨色"
+          },
+          {
+            "value": "other",
+            "label": "其他",
+            "desc": "在备注里写编号"
+          }
         ]
       },
       {
         "type": "verdict",
         "id": "components",
-        "text": "逐项判定以下组件",
+        "text": "逐项判定以下新增能力",
         "items": [
           {
-            "id": "data-blocks",
-            "label": "数据组件",
-            "chip": "表格/数字/条形",
-            "hint": "对齐 = 间距、配色、字号与模板一致。",
+            "id": "toc",
+            "label": "阅读进度目录",
+            "chip": "左侧固定",
+            "hint": "高亮跟随滚动、点击平滑跳转、可收起。",
             "verdicts": [
-              { "value": "pass", "label": "对齐", "tone": "ok" },
-              { "value": "fail", "label": "不对齐", "tone": "risk" },
-              { "value": "later", "label": "稍后", "tone": "warn" }
+              {
+                "value": "pass",
+                "label": "对齐",
+                "tone": "ok"
+              },
+              {
+                "value": "fail",
+                "label": "不对齐",
+                "tone": "risk"
+              },
+              {
+                "value": "later",
+                "label": "稍后",
+                "tone": "warn"
+              }
             ]
           },
           {
-            "id": "review-form",
-            "label": "审阅表单",
-            "chip": "3 类问题",
+            "id": "scroller",
+            "label": "站内横向滚动",
+            "chip": "宽幅内容",
+            "hint": "滑条自动隐藏、可拖动、不影响布局。",
             "verdicts": [
-              { "value": "pass", "label": "对齐", "tone": "ok" },
-              { "value": "fail", "label": "不对齐", "tone": "risk" }
+              {
+                "value": "pass",
+                "label": "对齐",
+                "tone": "ok"
+              },
+              {
+                "value": "fail",
+                "label": "不对齐",
+                "tone": "risk"
+              }
             ]
           }
         ]
       },
       {
         "type": "choice",
-        "id": "phase3-scope",
-        "text": "Phase 3 优先做哪件事？",
+        "id": "roadmap",
+        "text": "下一版优先补充哪类能力？",
         "multiple": true,
         "options": [
-          { "value": "schema", "label": "zod schema 与稳定 id" },
-          { "value": "serve", "label": "build/serve 脚本与服务器往返" },
-          { "value": "skill", "label": "SKILL.md 重写与产物 vendoring" }
+          {
+            "value": "blocks",
+            "label": "新增块类型"
+          },
+          {
+            "value": "roundtrip",
+            "label": "服务器往返与导出"
+          },
+          {
+            "value": "docs",
+            "label": "文档与本地化示例"
+          }
         ]
       },
       {

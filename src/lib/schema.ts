@@ -27,6 +27,7 @@ const block = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("table"),
     id: z.string().optional(),
+    wide: z.boolean().optional(),
     columns: z.string().array(),
     num: z.number().int().nonnegative().array().optional(),
     rows: z.string().array().array(),
@@ -72,6 +73,12 @@ const block = z.discriminatedUnion("type", [
     svg: z.string(),
     caption: z.string(),
     wide: z.boolean().optional(),
+  }),
+  z.object({
+    type: z.literal("swatch"),
+    id: z.string().optional(),
+    wide: z.boolean().optional(),
+    items: z.object({ label: z.string().optional(), html: z.string() }).array(),
   }),
 ]);
 

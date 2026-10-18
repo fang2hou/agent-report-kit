@@ -2,26 +2,29 @@
   import type { Block, Review } from '#lib/schema';
   import Block_ from '#lib/components/Block.svelte';
   import Review_ from '#lib/components/Review.svelte';
+  import flowZh from '#lib/diagrams/branching-flow.zh.svg?raw';
 
   document.documentElement.lang = 'zh-CN';
 
   const TOKENS = [
-    '--bg',
-    '--surface',
-    '--sunk',
-    '--ink',
-    '--ink-2',
-    '--muted',
-    '--line',
-    '--line-2',
-    '--accent',
-    '--accent-soft',
-    '--ok',
-    '--ok-soft',
-    '--warn',
-    '--warn-soft',
-    '--risk',
-    '--risk-soft'
+    '--color-bg',
+    '--color-surface',
+    '--color-sunk',
+    '--color-ink',
+    '--color-ink-2',
+    '--color-muted',
+    '--color-line',
+    '--color-line-2',
+    '--color-accent',
+    '--color-accent-soft',
+    '--color-ok',
+    '--color-ok-soft',
+    '--color-warn',
+    '--color-warn-soft',
+    '--color-risk',
+    '--color-risk-soft',
+    '--color-mark',
+    '--color-mark-soft'
   ];
 
   const tokenValue = (name: string) =>
@@ -41,8 +44,8 @@
     {
       type: 'kv',
       entries: [
-        { k: '所有者', v: 'fang2hou/report-kit' },
-        { k: '令牌来源', v: 'html-report skill template.html' },
+        { k: '所有者', v: 'fang2hou/agent-report-kit' },
+        { k: '令牌来源', v: 'app.css @theme（Tailwind v4）' },
         { k: '字体栈', v: '按 lang 切换（en / zh / ja）' }
       ]
     },
@@ -69,27 +72,28 @@
     {
       type: 'figures',
       items: [
-        { value: '16 种', label: '块类型' },
+        { value: '15 种', label: '块类型' },
         { value: '3 类', label: '审阅问题' },
-        { value: '1 个', label: 'index.html' }
+        { value: '4 类', label: 'Mermaid 图' }
       ]
     },
     {
       type: 'table',
-      columns: ['组件', '行数', '判定', '备注'],
+      columns: ['组件', '行数', '状态', '备注'],
       num: [1],
       rows: [
-        ['表格（本表）', '1', '<span class="chip ok">对齐</span>', 'num 列右对齐'],
-        ['数字行', '1', '<span class="chip ok">对齐</span>', '<time>2026-10-18</time>'],
-        ['条形图', '1', '<span class="chip warn">待验</span>', '值由 max 归一']
+        ['表格（本表）', '1', '<span class="chip ok">支持</span>', 'num 列右对齐'],
+        ['数字行', '1', '<span class="chip ok">支持</span>', '<time>2026-10-18</time>'],
+        ['条形图', '1', '<span class="chip warn">演示</span>', '值由 max 归一']
       ]
     },
     {
       type: 'bars',
       items: [
-        { label: 'app.css', value: 430, display: '430 行' },
-        { label: 'Block.svelte', value: 520, display: '520 行' },
-        { label: 'Review.svelte', value: 830, display: '830 行' }
+        { label: '阅读类（p/列表/提示/卡片等）', value: 9, display: '9 种' },
+        { label: '数据类（figures/table/bars）', value: 3, display: '3 种' },
+        { label: '图示类（figure/swatch）', value: 2, display: '2 种' },
+        { label: '权衡类（compare）', value: 1, display: '1 种' }
       ]
     }
   ];
@@ -97,8 +101,8 @@
   const chartBlocks: Block[] = [
     {
       type: 'figure',
-      svg: '<svg viewBox="0 0 520 90" role="img" aria-label="渲染管线" font-family="inherit" font-size="15"><g fill="none" stroke="var(--line-2)" stroke-width="1.5"><rect x="1" y="20" width="120" height="48" rx="8"/><rect x="200" y="20" width="120" height="48" rx="8"/><rect x="399" y="20" width="120" height="48" rx="8"/><path d="M121 44h79M320 44h79" stroke="var(--accent)"/></g><g fill="currentColor" text-anchor="middle"><text x="61" y="49">report.json</text><text x="260" y="49">组件库</text><text x="459" y="49">index.html</text></g></svg>',
-      caption: 'inline SVG：viewBox 缩放，currentColor + 令牌配色。'
+      svg: flowZh,
+      caption: 'inline SVG（tools/diagram.ts 经 Pele 渲染）：.pele 变量映射到页面令牌，viewBox 缩放。'
     }
   ];
 
@@ -127,6 +131,32 @@
           text: 'badge 与 pick 独立，可组合使用。',
           pros: ['可表达非二元的倾向']
         }
+      ]
+    }
+  ];
+
+  const wideTable: Block[] = [
+    {
+      type: 'table',
+      wide: true,
+      columns: ['组件', '源文件', '职责', '渲染时机'],
+      rows: [
+        ['Block', '<code>src/lib/components/Block.svelte</code>', '全部块类型的渲染', 'SSR'],
+        ['Review', '<code>src/lib/components/Review.svelte</code>', '审阅表单与提交', 'SSR + 水合'],
+        ['Scroller', '<code>src/lib/components/Scroller.svelte</code>', '站内横向滚动条', 'SSR + 水合']
+      ]
+    }
+  ];
+
+  const swatchBlocks: Block[] = [
+    {
+      type: 'swatch',
+      wide: true,
+      items: [
+        { label: 'A · 实底', html: '<button type="button" style="border:0;border-radius:8px;background:var(--color-accent);color:#fff;padding:8px 18px;font:600 14px var(--ui);cursor:pointer">确认</button>' },
+        { label: 'B · 描边', html: '<button type="button" style="border:1.5px solid var(--color-accent);border-radius:8px;background:transparent;color:var(--color-accent);padding:7px 17px;font:600 14px var(--ui);cursor:pointer">确认</button>' },
+        { label: 'D · 胶囊', html: '<button type="button" style="border:0;border-radius:999px;background:var(--color-accent);color:#fff;padding:8px 20px;font:600 14px var(--ui);cursor:pointer">确认</button>' },
+        { label: 'J · 墨色', html: '<button type="button" style="border:0;border-radius:8px;background:var(--color-ink);color:#fff;padding:8px 18px;font:600 14px var(--ui);cursor:pointer">确认</button>' }
       ]
     }
   ];
@@ -200,99 +230,79 @@
 </script>
 
 <svelte:head>
-  <title>report-kit 组件预览</title>
+  <title>agent-report-kit 组件预览</title>
 </svelte:head>
 
-<main class="page">
-  <header class="masthead">
-    <p class="kicker">report-kit · styleguide</p>
+<main class="page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pb-2 pt-14">
+  <header class="masthead mb-9 min-w-0 col-start-2">
+    <p class="kicker m-0 mb-[0.6em] font-ui text-[0.86em] tracking-normal text-muted">agent-report-kit · styleguide</p>
     <h1>组件与配色预览</h1>
-    <p class="meta">全部组件由 report-kit 渲染；色值运行时读取令牌真值。</p>
+    <p class="meta m-0 font-ui text-[0.86em] tracking-normal text-muted">全部组件由 agent-report-kit 渲染；色值运行时读取令牌真值。</p>
   </header>
 
   <section id="palette">
     <h2>调色板</h2>
-    <div class="swatches">
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-x-4 gap-y-3.5 my-[1.2em] font-ui">
       {#each TOKENS as tok (tok)}
-        <div class="swatch">
-          <span class="color" style="background: var({tok})"></span>
+        <div class="grid gap-1 text-[0.84em]">
+          <span class="h-[52px] rounded-sm border border-line-2" style="background: var({tok})"></span>
           <code>{tok}</code>
-          <span class="hex">{tokenValue(tok)}</span>
+          <span class="font-mono text-[0.9em] text-muted">{tokenValue(tok)}</span>
         </div>
       {/each}
     </div>
-    <div class="tokens">
+    <div class="tokens text-[0.88em] text-ink-2 [overflow-wrap:anywhere]">
       <p><code>--fs</code> {tokenValue('--fs')}　<code>--lh</code> {tokenValue('--lh')}　<code>--measure</code> {tokenValue('--measure')}</p>
       <p><code>--body</code> {tokenValue('--body')}</p>
       <p><code>--ui</code> {tokenValue('--ui')}</p>
-      <p><code>--mono</code> {tokenValue('--mono')}</p>
+      <p><code>--font-mono</code> {tokenValue('--font-mono')}</p>
     </div>
   </section>
 
-  <section>
+  <section >
     <h2>阅读组件</h2>
     {#each readingBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section>
+  <section >
     <h2>数据组件</h2>
     {#each dataBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section>
+  <section >
     <h2>图表</h2>
     {#each chartBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section>
+  <section >
     <h2>权衡与 badge</h2>
     {#each compareBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
-  <section>
+  <section >
+    <h2>宽幅表格</h2>
+    {#each wideTable as block (block.id ?? block)}
+      <Block_ {block} />
+    {/each}
+  </section>
+
+  <section >
+    <h2>样式画廊</h2>
+    {#each swatchBlocks as block (block.id ?? block)}
+      <Block_ {block} />
+    {/each}
+  </section>
+
+  <section >
     <h2>审阅表单</h2>
-    <Review_ review={demoReview} title="report-kit 组件预览" />
+    <Review_ review={demoReview} title="agent-report-kit 组件预览" />
   </section>
 </main>
-
-<style>
-  .swatches {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 14px 16px;
-    margin: 1.2em 0;
-    font-family: var(--ui);
-  }
-
-  .swatch {
-    display: grid;
-    gap: 4px;
-    font-size: 0.84em;
-  }
-
-  .swatch .color {
-    height: 52px;
-    border-radius: 8px;
-    border: 1px solid var(--line-2);
-  }
-
-  .swatch .hex {
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 0.9em;
-  }
-
-  .tokens {
-    font-size: 0.88em;
-    color: var(--ink-2);
-    overflow-wrap: anywhere;
-  }
-</style>
