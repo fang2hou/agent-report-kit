@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   /*
    * Reading-position TOC. A bare arrow knob pinned to the left edge, always
    * vertically centered; clicking it slides in a transparent panel clear of
@@ -20,7 +21,7 @@
     en: { title: 'Contents', expand: 'Expand contents', collapse: 'Collapse contents' }
   };
 
-  let { sections }: { sections: { id: string; heading: string }[] } = $props();
+  let { sections }: { sections: { id: string; heading: string; depth?: number }[] } = $props();
 
   const T = WORDS[(document.documentElement.lang || 'en').slice(0, 2).toLowerCase()] ?? WORDS.en!;
 
@@ -48,6 +49,7 @@
 
   const onClick = (e: MouseEvent, i: number) => {
     e.preventDefault();
+    pendingRelease?.();
     active = i;
     pinned = i;
     clearTimeout(pinTimer);
@@ -55,10 +57,15 @@
     // drops that, so restore it manually — otherwise Tab continues through
     // the panel instead of the section the reader jumped to.
     const target = document.getElementById(sections[i]!.id);
-    const heading = target?.querySelector('h2');
+    const heading = target?.querySelector<HTMLElement>('h2, legend');
     if (heading) {
       heading.setAttribute('tabindex', '-1');
       heading.focus({ preventScroll: true });
+    }
+    if (location.hash.startsWith('#/')) {
+      history.replaceState(history.state, '', `#/?anchor=${encodeURIComponent(sections[i]!.id)}`);
+    } else {
+      history.replaceState(history.state, '', `#${encodeURIComponent(sections[i]!.id)}`);
     }
     target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     // A click on an already-aligned section never scrolls, so no scrollend
@@ -93,7 +100,9 @@
       });
     };
     addEventListener('scroll', onScroll, { passive: true });
-    track();
+    const anchor = location.hash.startsWith('#/') ? new URLSearchParams(location.hash.split('?')[1]).get('anchor') : decodeURIComponent(location.hash.slice(1));
+    if (anchor) document.getElementById(anchor)?.scrollIntoView();
+    untrack(track);
     return () => {
       removeEventListener('scroll', onScroll);
       clearTimeout(pinTimer);
@@ -113,7 +122,7 @@
   </button>
   <div class="panel" id="toc-panel" class:open>
     {#each sections as s, i (s.id)}
-      <a class:active={i === active} aria-current={i === active ? 'location' : undefined} href={`#${s.id}`} onclick={(e) => onClick(e, i)}>{s.heading}</a>
+      <a class={{ sub: s.depth === 1, active: i === active }} aria-current={i === active ? 'location' : undefined} href={`#${s.id}`} onclick={(e) => onClick(e, i)}>{s.heading}</a>
     {/each}
   </div>
 </nav>
@@ -238,10 +247,12 @@
     font-weight: 600;
   }
 
+  a.sub { padding-left: 22px; }
+
   @media (max-width: 1080px) {
-    .toc {
-      display: none;
-    }
+    .knob { top: auto; bottom: 18px; transform: none; background: var(--color-surface); border-color: var(--color-line); }
+    .panel { top: auto; bottom: 56px; left: 12px; transform: none; padding: 12px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-surface); box-shadow: var(--shadow-dock); }
+    .panel.open { transform: none; }
   }
 
   @media print {

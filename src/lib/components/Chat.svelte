@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
 
   interface ChatItem {
+    id?: number;
     role: 'user' | 'agent';
     quote?: string;
     text: string;
@@ -15,6 +16,7 @@
   interface ChatWords {
     on: string;
     off: string;
+    waiting: string;
     ask: string;
     send: string;
     thread: string;
@@ -31,7 +33,8 @@
   const WORDS: Record<string, ChatWords> = {
     zh: {
       on: '与 Agent 连接中',
-      off: '本地模式（未连接）',
+      off: '本地服务未连接',
+      waiting: '服务在线，等待 Agent 监听',
       ask: '就这段向 Agent 提问…',
       send: '发送',
       thread: '与 Agent 的讨论',
@@ -46,7 +49,8 @@
     },
     ja: {
       on: 'Agentと接続中',
-      off: 'ローカルモード（未接続）',
+      off: 'ローカルサーバー未接続',
+      waiting: 'サーバー接続済み・Agent待機中',
       ask: 'この部分について Agent に質問…',
       send: '送信',
       thread: 'Agentとのやり取り',
@@ -61,7 +65,8 @@
     },
     en: {
       on: 'Connected to Agent',
-      off: 'Local mode (not connected)',
+      off: 'Local server disconnected',
+      waiting: 'Server online, Agent not listening',
       ask: 'Ask the Agent about this passage…',
       send: 'Send',
       thread: 'Discussion with the Agent',
@@ -89,7 +94,7 @@
   onMount(() => {
     const main = document.querySelector('main.page');
     if (!main) return;
-    const live = location.protocol.startsWith('http');
+    const live = document.documentElement.dataset.reportMode === 'session';
     const lang = (document.documentElement.lang || 'en').slice(0, 2).toLowerCase();
     const W: ChatWords = { ...WORDS.en!, ...WORDS[lang] };
 
@@ -106,16 +111,19 @@
     const titleSpan = list.querySelector('.qa-title');
     if (titleSpan) titleSpan.textContent = W.list;
     input.placeholder = W.ask;
+    input.ariaLabel = W.ask;
     const sendBtn = bubble.querySelector('.qa-send');
-    if (sendBtn) sendBtn.innerHTML = sendLabel();
+    if (sendBtn) {
+      sendBtn.innerHTML = sendLabel();
+      sendBtn.setAttribute('aria-label', W.send);
+    }
 
     let online = false;
-    const setConn = (on: boolean) => {
-      if (on === online && chip.classList.contains('show')) return;
+    const setConn = (on: boolean, listening = false) => {
       online = on;
       chip.classList.add('show');
-      chip.classList.toggle('on', on);
-      label.textContent = on ? W.on : W.off;
+      chip.classList.toggle('on', on && listening);
+      label.textContent = on ? listening ? W.on : W.waiting : W.off;
     };
     // Unserved page: no chat channel and no connection chip — the final
     // artifact must not carry any server UI. The browser keeps review answers.
@@ -124,15 +132,16 @@
     const threads = new Map<string, Thread>();
     let cursor = 0;
     let seeded = false;
+    const seen = new Set<number>();
 
     const post = async (body: Record<string, unknown>) => {
-      const res = await fetch('api/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ key: crypto.randomUUID(), ...body })
       });
       if (!res.ok) throw new Error('chat post failed');
-      return (await res.json()) as { id: number };
+      return (await res.json()) as { id: number; role: 'user' | 'agent'; text: string; replyTo?: number };
     };
 
     // ---- thread popover ----
@@ -168,6 +177,7 @@
       host.append(wait);
     };
 
+    let following = false;
     const renderPop = (id: string, preserve = false) => {
       const t = threads.get(id);
       if (!t) return;
@@ -209,16 +219,25 @@
       fs.innerHTML = sendLabel();
       const doFollow = async () => {
         const text = fi.value.trim();
-        if (!text || !online) return;
-        fi.value = '';
-        t.items.push({ role: 'user', text });
-        renderPop(id, true);
+        if (!text || !online || following) return;
+        following = true;
         try {
-          await post({ replyTo: Number(id), text });
+          const saved = await post({ replyTo: Number(id), text });
+          if (popFor === id) {
+            const current = pop.querySelector<HTMLTextAreaElement>('.qa-follow textarea');
+            if (current) current.value = '';
+          }
+          deliver(saved);
+          seen.add(saved.id);
+          t.el?.classList.add('pending');
+          t.el?.classList.remove('answered');
+          updateBadge();
+          if (list.classList.contains('show')) renderList();
         } catch {
           setConn(false);
-          t.items.pop();
           renderPop(id, true);
+        } finally {
+          following = false;
         }
       };
       fs.addEventListener('click', doFollow);
@@ -258,7 +277,7 @@
 
     // ---- discussion list on the connection chip ----
     const updateBadge = () => {
-      const n = [...threads.values()].filter((t) => t.items.some((it) => it.role === 'agent'))
+      const n = [...threads.values()].filter((t) => t.items.at(-1)?.role === 'agent')
         .length;
       badge.textContent = String(n || '');
       badge.hidden = n === 0;
@@ -275,7 +294,7 @@
         return;
       }
       for (const [id, t] of [...threads.entries()].sort((a, b) => Number(b[0]) - Number(a[0]))) {
-        const answered = t.items.some((it) => it.role === 'agent');
+        const answered = t.items.at(-1)?.role === 'agent';
         const row = document.createElement('button');
         row.type = 'button';
         row.className = `qa-row${answered ? '' : ' pending'}`;
@@ -319,13 +338,14 @@
     });
 
     // ---- incoming replies ----
-    const deliver = (m: { role: 'user' | 'agent'; text: string; replyTo?: number }) => {
+    const deliver = (m: { id: number; role: 'user' | 'agent'; text: string; replyTo?: number }) => {
       const key = String(m.replyTo ?? '');
       const t = threads.get(key);
       if (!t) return;
-      t.items.push({ role: m.role, text: m.text });
-      t.el?.classList.remove('pending');
-      t.el?.classList.add('answered');
+      if (t.items.some((item) => item.id === m.id)) return;
+      t.items.push({ id: m.id, role: m.role, text: m.text });
+      t.el?.classList.toggle('pending', m.role === 'user');
+      t.el?.classList.toggle('answered', m.role === 'agent');
       if (popFor === key) renderPop(key, true);
       updateBadge();
       if (list.classList.contains('show')) renderList();
@@ -390,7 +410,7 @@
       }
       const t = threads.get(id);
       if (t) t.el = el;
-      else threads.set(id, { items: [{ role: 'user', quote, text }], el });
+      else threads.set(id, { items: [{ id: Number(id), role: 'user', quote, text }], el });
       updateBadge();
     };
 
@@ -401,7 +421,7 @@
       for (const m of messages) {
         if (m.role === 'user' && !m.replyTo) {
           threads.set(String(m.id), {
-            items: [{ role: 'user', quote: m.quote, text: m.text }],
+            items: [{ id: m.id, role: 'user', quote: m.quote, text: m.text }],
             el: null
           });
         }
@@ -409,18 +429,20 @@
       for (const m of messages) {
         if (m.replyTo == null) continue;
         const t = threads.get(String(m.replyTo));
-        if (t) t.items.push({ role: m.role, quote: m.quote, text: m.text });
+        if (t) t.items.push({ id: m.id, role: m.role, quote: m.quote, text: m.text });
       }
       for (const [id, t] of threads) {
+        if (t.el) continue;
         const quote = t.items[0]!.quote;
-        const answered = t.items.some((it) => it.role === 'agent');
+        const answered = t.items.at(-1)?.role === 'agent';
         if (!quote) continue;
         const range = findQuoteRange(quote);
         if (!range) continue;
         attach(range, id, quote, t.items[0]!.text);
-        if (answered && t.el) {
-          t.el.classList.remove('pending');
-          t.el.classList.add('answered');
+        const attached = threads.get(id)?.el;
+        if (answered && attached) {
+          attached.classList.remove('pending');
+          attached.classList.add('answered');
         }
       }
       updateBadge();
@@ -428,20 +450,27 @@
 
     const poll = async () => {
       try {
-        const res = await fetch(`api/chat?since=${seeded ? cursor : 0}`, { cache: 'no-store' });
+        const res = await fetch(`/api/chat?since=${seeded ? cursor : 0}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('chat poll failed');
         const data = (await res.json()) as {
           cursor?: number;
-          messages: { id: number; role: 'user' | 'agent'; text: string; replyTo?: number }[];
+          listening?: boolean;
+          messages: { id: number; role: 'user' | 'agent'; text: string; quote?: string; replyTo?: number }[];
         };
         cursor = data.cursor ?? cursor;
         if (seeded) {
-          for (const m of data.messages) if (m.role === 'agent') deliver(m);
+          for (const m of data.messages) {
+            if (seen.has(m.id)) continue;
+            if (m.role === 'user' && m.replyTo == null) restore([m]);
+            else deliver(m);
+          }
         } else {
           restore(data.messages);
           seeded = true;
         }
-        setConn(true);
+        for (const m of data.messages) seen.add(m.id);
+        if (list.classList.contains('show')) renderList();
+        setConn(true, data.listening);
       } catch {
         setConn(false);
       }
@@ -503,7 +532,9 @@
       clearTimeout(selTimer);
       selTimer = setTimeout(showBubble, 250);
     });
-    addEventListener('scroll', hideBubble, { passive: true, capture: true });
+    addEventListener('scroll', () => {
+      if (!bubble.contains(document.activeElement)) hideBubble();
+    }, { passive: true, capture: true });
     addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         hideBubble();
@@ -525,7 +556,8 @@
       input.value = '';
       try {
         const { id } = await post({ quote, text });
-        attach(range, String(id), quote, text);
+        seen.add(id);
+        if (!threads.has(String(id))) attach(range, String(id), quote, text);
       } catch {
         setConn(false);
         input.value = text;

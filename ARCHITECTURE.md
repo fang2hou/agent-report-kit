@@ -4,27 +4,30 @@ This document orients contributors and keeps the design from drifting — especi
 
 ## Overview
 
-agent-report-kit turns a `report.json` into a single self-contained HTML page. A SvelteKit app defines the component library and chrome; a compile step prerenders it, injects the data, and emits one `index.html` that runs from any delivery channel — static hosting, an attachment, or a locally opened file. An optional local server collects review answers and selection-chat replies from the served page. Consumers (skills such as agent-report) carry no template content — they clone this repo, write JSON, and run the tools.
+agent-report-kit renders `report.json` as a temporary local decision website and exports it as standalone HTML or PDF. Both modes use the same Svelte components, schema, theme, and localized chrome. One SvelteKit Node process serves the interactive page and its state APIs. Consumers carry no template content: they write JSON and call the kit's commands.
 
 ## Codebase Map
 
-- renderer — SvelteKit routes and the component library: page shell, Block (content blocks), Review (question form), Chat (selection micro-Q&A), Toc (reading-position contents), Scroller (in-page horizontal slider)
+- renderer — shared ReportPage, Block, Review, Chat, Toc, and Scroller components; navigation allocates unique section and question anchors
 - schema — the zod contract for `report.json`; the authority for every field
 - theme — Tailwind v4 tokens in `src/app.css`: static `@theme` design tokens, runtime `:lang` font and metric variables
 - compile pipeline — `tools/build.ts` and `tools/validate.ts`: validate, prerender, inject data, emit one file; `tools/diagram.ts`: render Mermaid sources to themed SVG (Pele) at authoring time
-- server — `tools/serve.ts`: static file serving plus `/api/state` and `/api/chat` for the round trip
+- session — `src/session/` SvelteKit routes and hooks, backed by `src/lib/server/`; the service is the only state writer
+- CLI — `tools/serve.ts` starts/closes the SvelteKit process and accesses its API; `tools/pdf.ts` prints an HTML export with an installed browser
 - docs — the authoring contract and guides (`docs/`), consumed by downstream skills in-place
 
 ## Invariants
 
 What must remain true about the architecture:
 
-- **Single-file output**: the compiled page inlines all CSS, JS, and data; zero network requests at read time; it works offline from every delivery channel, including a locally opened file (hash router).
+- **Standalone export**: exported HTML inlines all CSS, JS, and data, makes no API requests, and works offline or on static HTTP hosting. Export routes use the hash router; session routes use pathname routing. PDF derives from the same HTML and print styles.
 - **Contract authority**: `src/lib/schema.ts` is the only authority for the report.json contract; `docs/report-schema.md` mirrors it and must change in the same commit.
 - **Renderer owns the look**: theme, components, default buttons, and chrome strings live in this repo; consumers never carry template content or override styles per page.
-- **Content direction**: report data flows one way — JSON in, page out; the page never mutates the report or re-fetches it.
+- **Content direction**: report data flows one way — JSON in, page out. The session loads JSON through SvelteKit and reloads when it changes; answers and discussion never mutate the report. Exports read their embedded JSON.
 - **Round trip is optional**: the page degrades gracefully when no server is present (answers stay in localStorage; chat hides).
 - **Size budget**: content included, the page stays under the budget documented in `docs/report-schema.md`.
+- **One writer**: all answer, event, and message writes go through the SvelteKit service. CLI replies never modify state files directly. Message keys make reply retries idempotent; event acknowledgement follows handling.
+- **Temporary ownership**: agent polling renews a bounded lease; browser activity does not. An explicit close, owner process exit, or expired lease closes the service and removes contact metadata, preserving collected content and state.
 
 ## Cross-Cutting Concerns
 

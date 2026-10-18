@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import type { Question, Review } from '#lib/schema';
 
-  let { review, title }: { review: Review; title: string } = $props();
+  let { review, title, anchors = [] }: { review: Review; title: string; anchors?: string[] } = $props();
 
   /* Verdict glyphs follow the tone, so the shape carries the meaning the
      tone declares: ok=check, risk=cross, warn=deferral clock, none=dot.
@@ -143,7 +143,7 @@
     return out;
   };
 
-  const live = location.protocol.startsWith('http');
+  const live = document.documentElement.dataset.reportMode === 'session';
   let online = live;
 
   const persist = async () => {
@@ -259,9 +259,10 @@
 </script>
 
 <form data-review oninput={schedule} onsubmit={onSubmit}>
-  {#each review.questions as q (q.id)}
+  {#each review.questions as q, qi (q.id)}
     {#if q.type === 'choice'}
       <fieldset
+        id={anchors[qi]}
         class={`q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl ${
           missingIds.includes(q.id) ? 'border-risk' : ''
         }`}
@@ -303,7 +304,7 @@
         {/if}
       </fieldset>
     {:else if q.type === 'verdict'}
-      <fieldset class="q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl">
+      <fieldset id={anchors[qi]} class="q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl">
         <legend class="float-left w-full p-0 pb-[0.3em] text-[1.04em] font-semibold">{q.text}</legend>
         {#each q.items as item (item.id)}
           <fieldset
@@ -337,7 +338,7 @@
         {/each}
       </fieldset>
     {:else}
-      <fieldset class="q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl">
+      <fieldset id={anchors[qi]} class="q my-[1.2em] min-w-0 rounded-lg border border-line bg-surface px-[22px] pt-[18px] pb-5 supports-[corner-shape:squircle]:rounded-xl">
         <legend class="float-left w-full p-0 pb-[0.3em] text-[1.04em] font-semibold">{q.text}</legend>
         {#if q.hint}
           <p class="hint clear-both m-0 mb-[0.8em] font-ui text-[0.88em] text-muted">{q.hint}</p>

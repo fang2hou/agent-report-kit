@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { compile } from "./compile.ts";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { reportSchema } from "../src/lib/schema.ts";
@@ -22,7 +22,7 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-execSync("pnpm exec vite build", { cwd: ROOT, stdio: "inherit" });
+await compile("export");
 
 let template = readFileSync(join(ROOT, "build/index.html"), "utf8");
 const tag = (json: string) => `<script id="report-data" type="application/json">${json}</script>`;

@@ -26,8 +26,9 @@ Rich text fields (noted per block) hold a small trusted subset of HTML —
 - `lang` drives fonts, line breaking, and every UI string (`zh-CN`, `ja`, `en`).
   Write all visible text in this language.
 - `summary` renders in the conclusion box; each point is rich text.
-- With five or more sections the renderer adds a table of contents automatically;
-  optional `id` gives an anchor a stable name (each-key and TOC link).
+- The renderer supplies a TOC for every section, the review area, and every
+  question, including short reports and narrow desktop panels. Optional `id`
+  gives a section a stable anchor; generated anchors avoid collisions.
 - `review` is optional; a report that ends with questions is a review page.
 
 ## Blocks

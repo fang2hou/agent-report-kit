@@ -7,17 +7,17 @@ agent-report-kit is a personal SvelteKit renderer that compiles a `report.json` 
 ```bash
 mise install                 # set up the toolchain (node, pnpm, oxlint, prek, cocogitto)
 pnpm install                 # install dependencies
-pnpm dev                     # dev server; /#/styleguide renders every component
+pnpm dev                     # dev server; /styleguide renders every component
 pnpm build                   # production build into build/index.html
 node tools/build.ts <report.json> <out.html>   # validate + compile + inject, from any cwd
-node tools/serve.ts start <dir>              # serve a compiled page, collect answers
+node tools/serve.ts start <dir>              # start a local session from report.json
 mise run lint                # oxlint only
 mise run typecheck           # svelte-check only
 mise run format              # oxfmt, rewrites in place
 mise run check               # full validation — run before every commit
 ```
 
-There is no test suite; verification is `mise run check` plus a build smoke run (see DEVELOPMENT.md). `pnpm exec svelte-kit sync` once per fresh clone before `pnpm check`.
+Verification is `mise run check`, `pnpm test`, and a build/browser smoke run (see DEVELOPMENT.md). `pnpm exec svelte-kit sync` once per fresh clone before `pnpm check`.
 
 ## Engineering Standards
 
@@ -36,7 +36,7 @@ Project-specific overrides:
 
 - `src/` — the renderer: `src/lib/components/` (Block, Review, Chat, Toc, Scroller), `src/lib/schema.ts` (zod contract), `src/app.css` (Tailwind v4 theme tokens), `src/lib/diagrams/` (Mermaid sources and rendered SVG for the demo), `src/routes/` (page shell and the `/styleguide` demo).
 - `docs/` — the authoring contract and guides consumed by downstream skills: report-schema.md, components.md, typography.md.
-- `tools/` — build.ts and validate.ts (compile pipeline), diagram.ts (Mermaid → themed SVG via Pele), serve.ts (review/chat round-trip server).
+- `tools/` — build.ts and validate.ts (compile pipeline), diagram.ts (Mermaid → themed SVG via Pele), serve.ts (SvelteKit lifecycle/API client).
 - `build/` — build output; only `index.html` matters.
 
 ## Boundaries

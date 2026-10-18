@@ -27,10 +27,13 @@ Do not substitute tools without explicit approval (see the guidelines repository
 ## Commands
 
 ```bash
-pnpm dev                                     # dev server; /#/styleguide renders every component
+pnpm dev                                     # local SvelteKit app; /styleguide renders every component
 node tools/build.ts <report.json> <out.html>  # full compile, works from any cwd
 node tools/diagram.ts <diagram.mmd> [out.svg] # Mermaid → themed SVG (Pele); prints to stdout without out
-node tools/serve.ts start <dir>            # serve a compiled page + collect answers
+node tools/serve.ts start <dir>            # start a session from report.json
+pnpm export:html <report.json> <out.html>   # standalone offline report
+pnpm export:pdf <report.json> <out.pdf>     # requires Chrome/Chromium (CHROME_BIN overrides)
+pnpm test                                 # event delivery, lease, and navigation regressions
 mise run check                               # full validation — what CI runs
 mise run lint | typecheck | format | validate # individual gates
 ```
@@ -49,7 +52,9 @@ mise run lint | typecheck | format | validate # individual gates
 
 - `src/` — the renderer: components, schema, theme, routes.
 - `docs/` — authoring contract and guides for consumer skills.
-- `tools/` — compile pipeline and the round-trip server.
+- `src/session/` — local SvelteKit routes, API, and lifecycle hook.
+- `src/routes/` — offline export routes.
+- `tools/` — serialized compilation, export commands, and session CLI client.
 
 ## Coding Standards
 
@@ -60,12 +65,14 @@ Follow the guidelines repository's coding standards. Project-specific rules:
 
 ## Testing
 
-There is no automated test suite. Verification for a change is:
+Verification for a change is:
 
 1. `mise run check` (lint, format, typecheck, schema validation).
-2. Build smoke: `node tools/build.ts src/lib/report.json /tmp/index.html`, then serve it with `tools/serve.ts` and walk the affected surface in a browser (components on `/#/styleguide`, review round trip, selection chat).
+2. `pnpm test` for state, cursor, lease, and navigation behavior.
+3. Build smoke: export `src/lib/report.json` with `tools/build.ts`; place a report.json in a temporary directory and start it with `tools/serve.ts`. Walk `/styleguide`, review autosave, selection chat, and follow-up replies in a browser. Poll every 5 seconds while the service is needed; stop it afterward.
+4. Verify exported HTML both as a local file and over static HTTP: it must not call `/api/*`. For print changes, run `export:pdf` and inspect all pages, including wide tables and expanded details.
 
-Add a real suite before the next contract-breaking change, not after.
+Keep harness-level trials outside the repository. Use the same prompt/model against an unmodified baseline and the changed kit, recording content completeness, TOC targets, actual browser round trips, process closure, and remaining files.
 
 ## Debugging
 
