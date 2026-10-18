@@ -13,5 +13,8 @@ run = "pnpm exec oxfmt --check ."
 [tasks.typecheck]
 run = "pnpm check"
 
+[tasks.validate]
+run = "node tools/validate.ts"
+
 [tasks.check]
-depends = ["lint", "format", "typecheck"]
+depends = ["lint", "format", "typecheck", "validate"]

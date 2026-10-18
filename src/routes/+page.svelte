@@ -1,6 +1,6 @@
 <script lang="ts">
   import raw from '#lib/report.json';
-  import type { Report } from '#lib/types';
+  import type { Report } from '#lib/schema';
   import Block from '#lib/components/Block.svelte';
   import Review from '#lib/components/Review.svelte';
 
@@ -54,17 +54,17 @@
   {#if showToc}
     <nav>
       <ol class="toc">
-        {#each report.sections as section, i (section.heading)}
-          <li><a href="#{sectionId(i)}">{section.heading}</a></li>
+        {#each report.sections as section, i (section.id ?? section)}
+          <li><a href="#{section.id ?? sectionId(i)}">{section.heading}</a></li>
         {/each}
       </ol>
     </nav>
   {/if}
 
-  {#each report.sections as section, i (section.heading)}
-    <section id={sectionId(i)}>
+  {#each report.sections as section, i (section.id ?? section)}
+    <section id={section.id ?? sectionId(i)}>
       <h2>{section.heading}</h2>
-      {#each section.blocks as block (block)}
+      {#each section.blocks as block (block.id ?? block)}
         <Block {block} />
       {/each}
     </section>
