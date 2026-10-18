@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Block, Review } from '#lib/types';
+  import type { Block, Review } from '#lib/schema';
   import Block_ from '#lib/components/Block.svelte';
   import Review_ from '#lib/components/Review.svelte';
 
@@ -231,28 +231,28 @@
 
   <section>
     <h2>阅读组件</h2>
-    {#each readingBlocks as block (block)}
+    {#each readingBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
   <section>
     <h2>数据组件</h2>
-    {#each dataBlocks as block (block)}
+    {#each dataBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
   <section>
     <h2>图表</h2>
-    {#each chartBlocks as block (block)}
+    {#each chartBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>
 
   <section>
     <h2>权衡与 badge</h2>
-    {#each compareBlocks as block (block)}
+    {#each compareBlocks as block (block.id ?? block)}
       <Block_ {block} />
     {/each}
   </section>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { Question, Review } from '#lib/types';
+  import type { Question, Review } from '#lib/schema';
 
   let { review, title }: { review: Review; title: string } = $props();
 

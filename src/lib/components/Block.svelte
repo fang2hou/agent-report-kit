@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Block } from '#lib/types';
+  import type { Block } from '#lib/schema';
 
   let { block }: { block: Block } = $props();
 
