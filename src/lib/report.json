@@ -1,0 +1,37 @@
+{
+  "lang": "zh-CN",
+  "title": "PoC：单文件渲染验证",
+  "summary": [
+    "bundleStrategy 为 inline 时，全部 JS 与 CSS 内联进单个 index.html。",
+    "纯客户端渲染，file:// 直接打开，无需服务器。"
+  ],
+  "sections": [
+    {
+      "heading": "验证项",
+      "blocks": [
+        { "type": "p", "text": "本页内容由 report.json 驱动渲染，页面代码不含任何正文。" },
+        {
+          "type": "table",
+          "columns": ["验证项", "判定方式"],
+          "rows": [
+            ["inline 内联", "产物目录只有一个 index.html，无外部 JS/CSS"],
+            ["file:// 打开", "本页即从文件系统加载"],
+            ["hydration", "下方单选组件可点选并保持状态"]
+          ]
+        }
+      ]
+    }
+  ],
+  "review": {
+    "questions": [
+      {
+        "id": "poc-check",
+        "text": "单选组件是否可交互？",
+        "options": [
+          { "value": "yes", "label": "可交互" },
+          { "value": "no", "label": "不可交互" }
+        ]
+      }
+    ]
+  }
+}
