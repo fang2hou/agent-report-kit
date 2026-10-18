@@ -3,8 +3,12 @@
   import type { Report } from '#lib/schema';
   import Block from '#lib/components/Block.svelte';
   import Review from '#lib/components/Review.svelte';
+  import Chat from '#lib/components/Chat.svelte';
 
-  const report = raw as unknown as Report;
+  const injected = JSON.parse(
+    (document.getElementById('report-data') as HTMLScriptElement).textContent ?? 'null'
+  ) as Report | null;
+  const report = injected ?? (raw as unknown as Report);
 
   const FALLBACK_STRINGS = { summary: 'Conclusion', review: 'To decide' };
   const UI_STRINGS: Record<string, { summary: string; review: string }> = {
@@ -23,6 +27,26 @@
   const openDetailsForPrint = () => {
     for (const d of document.querySelectorAll('details')) d.open = true;
   };
+
+  if (location.protocol.startsWith('http')) {
+    const scrollKey = `html-report:${location.pathname}:y`;
+    const y = sessionStorage.getItem(scrollKey);
+    if (y) addEventListener('load', () => scrollTo(0, Number(y)));
+    let version: number | null = null;
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/version', { cache: 'no-store' });
+        const v = (await res.json()).version as number;
+        if (version !== null && v !== version) {
+          sessionStorage.setItem(scrollKey, String(scrollY));
+          location.reload();
+        }
+        version = v;
+      } catch {
+        /* server gone; keep serving the current page */
+      }
+    }, 2000);
+  }
 </script>
 
 <svelte:head>
@@ -77,3 +101,5 @@
     </section>
   {/if}
 </main>
+
+<Chat />

@@ -133,17 +133,34 @@
     return out;
   };
 
-  const persist = () => {
+  const live = location.protocol.startsWith('http');
+  let online = live;
+
+  const persist = async () => {
     const unanswered = allIds.filter((id) => !isAnswered(id));
+    const state = { title, answers: collect(), unanswered, submitted };
+    if (live) {
+      status = S.saving;
+      try {
+        const res = await fetch('/api/state', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state)
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        online = true;
+        status = submitted ? S.submitted : S.saved;
+        return;
+      } catch {
+        online = false;
+      }
+    }
     try {
-      localStorage.setItem(
-        storeKey,
-        JSON.stringify({ title, answers: collect(), unanswered, submitted })
-      );
+      localStorage.setItem(storeKey, JSON.stringify(state));
     } catch {
       /* storage unavailable */
     }
-    status = submitted ? S.submitted : S.offline;
+    status = submitted && online ? S.submitted : S.offline;
   };
 
   const schedule = () => {
@@ -197,17 +214,37 @@
     submitted = saved.submitted ?? false;
   };
 
+  type SavedState = { answers?: Record<string, Answer>; submitted?: boolean } | null;
+
   onMount(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(storeKey) ?? 'null') as {
-        answers?: Record<string, Answer>;
-        submitted?: boolean;
-      } | null;
+    (async () => {
+      let saved: SavedState = null;
+      let fromServer = false;
+      if (live) {
+        try {
+          const res = await fetch('/api/state', { cache: 'no-store' });
+          if (res.ok) {
+            saved = (await res.json()) as NonNullable<SavedState>;
+            fromServer = !!(saved && saved.answers);
+          }
+        } catch {
+          online = false;
+        }
+      }
+      if (!fromServer) {
+        try {
+          saved = JSON.parse(localStorage.getItem(storeKey) ?? 'null') as SavedState;
+        } catch {
+          /* corrupted entry; start fresh */
+        }
+      }
       if (saved?.answers) apply(saved);
-    } catch {
-      /* corrupted entry; start fresh */
-    }
-    persist();
+      if (fromServer) {
+        status = submitted ? S.submitted : '';
+      } else {
+        await persist();
+      }
+    })();
   });
 </script>
 
