@@ -445,7 +445,7 @@
         return hideBubble();
       }
       const text = sel.toString().replace(/\s+/g, ' ').trim();
-      if (text.length < 2 || text.length > 600) return hideBubble();
+      if (text.length < 2 || text.length > 2000) return hideBubble();
       const rect = range.getBoundingClientRect();
       if (!rect.width && !rect.height) return hideBubble();
       const fresh = !bubble.classList.contains('show');
@@ -457,7 +457,7 @@
         12,
         Math.min(rect.left + scrollX + rect.width / 2 - 150, scrollX + innerWidth - 310)
       )}px`;
-      if (fresh) input.focus();
+      if (fresh) input.focus({ preventScroll: true });
     };
     let selTimer: ReturnType<typeof setTimeout> | undefined;
     document.addEventListener('selectionchange', () => {
@@ -492,7 +492,7 @@
         input.value = text;
         selRange = range;
         bubble.classList.add('show');
-        input.focus();
+        input.focus({ preventScroll: true });
       }
     };
     input.addEventListener('keydown', (e) => {
