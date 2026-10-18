@@ -2,4 +2,7 @@
 repo = "local"
 hooks = [
   { id = "check", name = "project-check", entry = "mise run check", language = "system", pass_filenames = false },
+  { id = "conventional-commit", name = "Validate Conventional Commit message", entry = "cog verify --file", language = "system", stages = [
+    "commit-msg",
+  ] },
 ]
