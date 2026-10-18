@@ -1,66 +1,71 @@
-# report-kit
+<div align="center">
 
-JSON-driven, single-file HTML report renderer built on SvelteKit. The agent
-writes a `report.json`; this repo renders it. Interactive mode runs the dev
-server; the final artifact is one self-contained `index.html` that opens from
-`file://` with zero external assets (~180 KB baseline).
+# agent-report-kit
 
-This repo owns everything visual and structural: the component library, the
-theme tokens (Tailwind v4 `@theme` in `src/app.css`), the default chrome
-strings per language, and the review/selection-chat machinery. Consumers —
-such as the html-report skill in [fang2hou/skills](https://github.com/fang2hou/skills) —
-clone this repo, feed it JSON, and never carry template content themselves.
+JSON in, one self-contained HTML report out — a renderer for AI agents that produce review and decision pages.
 
-## Commands
+[![CI](https://github.com/fang2hou/agent-report-kit/actions/workflows/check.yml/badge.svg)](https://github.com/fang2hou/agent-report-kit/actions/workflows/check.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-```bash
-pnpm install
-pnpm dev        # interactive mode: /api/state and /api/chat round-trips
-pnpm build      # emits build/index.html (self-contained)
+</div>
 
-node tools/build.ts <report.json> <out.html>
-# validate against the zod schema, compile, inject the data — one step;
-# works from any cwd
+The agent writes a `report.json`; this renderer compiles it into a single `index.html` that opens from `file://` with zero external assets, multilingual chrome, an optional review-question form, and a selection micro-Q&A. It is not a general site builder: one page, one finding, one decision.
 
-python3 tools/serve.py start <dir>   # serve a compiled page on 127.0.0.1,
-# collect review answers to state.json and selection-chat replies to
-# chat.json; `python3 tools/serve.py --help` for chat/reply/wait/stop
+![A rendered report page: masthead, summary box, and figure row](docs/screenshot.png)
+
+## 🚀 Usage / Quick Start
+
+**With an AI coding agent** — paste this into the agent to hand it the repository:
+
+```text
+Work in this repository. Read AGENTS.md at the repository root first and follow it.
 ```
 
-Only `build/index.html` is needed for distribution; `build/_app/version.json`
-is unused at runtime with polling disabled.
+The agent-report skill in [fang2hou/skills](https://github.com/fang2hou/skills) already drives this renderer end to end: it clones the repo, writes `report.json`, and runs the tools below.
 
-## Documentation
+**As a human** — requires [mise](https://mise.jdx.dev/) on macOS or Linux, plus Python 3.11+ for the answer-collection server. Runtime versions are pinned in `mise.toml`.
 
-- `docs/report-schema.md` — the report.json authoring contract; the zod schema
-  in `src/lib/schema.ts` is the authority, fix both in the same PR.
-- `docs/components.md` — which component fits which content shape, with the
-  rendered markup as a visual contract, plus a read-through checklist.
-- `docs/typography.md` — font stacks, sizes, color tokens, and how to add a
-  language.
-- `#/styleguide` (dev server) — every component rendered live with token
-  readouts.
+```bash
+mise install && pnpm install
+node tools/build.ts <report.json> out/index.html   # validate + compile + inject
+python3 tools/serve.py start out/                  # serve it, collect answers
+```
 
-Style changes land here alone: adjusting the look, adding a component, or
-adding a language requires no change in consuming skills.
+The compiled `index.html` runs anywhere — browser, `file://`, email attachment. `mise run` lists every other task (`check`, `dev`, `lint`, `typecheck`).
 
-## SvelteKit 3 notes
+<details>
+<summary>Authoring reference and the styleguide</summary>
 
-Verified on `@sveltejs/kit` 3.1.0, `svelte` 5.57, `vite` 8.3. Four behaviors
-that cost build cycles during the PoC:
+- `docs/report-schema.md` — every field, block, and question type.
+- `docs/components.md` — which component fits which content shape.
+- `pnpm dev`, then open `/#/styleguide` — every component rendered live with token readouts.
 
-1. **`file://` requires the hash router.** The pathname router matches
-   `location.pathname`, which under `file://` is a filesystem path, so no route
-   matches and the page stays blank. Configure `router: { type: 'hash' }`.
-2. **No page options with the hash router.** Exporting `ssr`, `prerender`, or
-   `trailingSlash` fails the build with `router_hash_page_options`; client-only
-   rendering is implied by the router itself.
-3. **`$lib` is now `#lib`** and must be declared as a Node subpath import in
-   `package.json` (`"imports": { "#lib/*": "./src/lib/*" }`). `sv create`
-   scaffolds add this; hand-rolled ones miss it.
-4. **`%sveltekit.head%` must sit bare inside `<head>`.** Wrapping it in
-   `<title>` makes the inlined `<style>` land inside the title element, and
-   the page ships with no CSS in head.
+</details>
 
-Also: `version.pollInterval` defaults to one hour, and its `version.json`
-fetch is blocked by CORS under `file://`. It is set to `0` here.
+## 💡 Concepts
+
+- **Data, not markup** — the page is compiled from `report.json`; the renderer owns every style, component, and default string. Consumers never carry template content.
+- **One self-contained file** — CSS, JS, and data are inlined; the page opens offline and stays small.
+- **The round trip** — a served page writes review answers to `state.json` and selection questions to `chat.json`, so the agent reads decisions instead of asking the user to paste them.
+- **Reader's language** — `lang` (`zh-CN`, `ja`, `en`) switches fonts, metrics, and every chrome string.
+
+## ✨ Features
+
+- **14 content blocks** — paragraphs, lists, tables, bars, comparisons, translated quote pairs, figures, collapsible evidence — picked by content shape, not by styling taste.
+- **Review questions** — single choice, verdict lists, and free text; localStorage draft, progress count, one submit.
+- **Selection micro-Q&A** — highlight any passage and ask about it; the question anchors to the text and the reply lands inline.
+- **Verified output** — the zod schema validates at build time; the whole pipeline runs from any cwd.
+
+## 📚 Learn More
+
+| Goal                  | Read                                             |
+| --------------------- | ------------------------------------------------ |
+| Author a report       | [docs/report-schema.md](./docs/report-schema.md) |
+| Understand the system | [ARCHITECTURE.md](./ARCHITECTURE.md)             |
+| Develop and validate  | [DEVELOPMENT.md](./DEVELOPMENT.md)               |
+| Contribute a change   | [CONTRIBUTING.md](./CONTRIBUTING.md)             |
+| Give it to an agent   | [AGENTS.md](./AGENTS.md)                         |
+
+## 📄 License
+
+MIT — see [LICENSE](./LICENSE).

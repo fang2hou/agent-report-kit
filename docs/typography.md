@@ -84,5 +84,5 @@ Radio buttons and checkboxes are drawn by the renderer at 1.15 em, so they match
 
 1. Add a `:lang(xx)` block next to the others with `--ui`, `--body`, `--fs`, `--lh`, `--ls`, and `--measure`.
 2. Choose fonts that are installed (`fc-list`), with a system fallback last.
-3. Adding a language now means changing the renderer: add the `STRINGS` entry in report-kit (`Review.svelte`, `Chat.svelte`, `+page.svelte`) and the `:lang` font block in `src/app.css`, then rebuild.
+3. Adding a language now means changing the renderer: add the `STRINGS` entry in agent-report-kit (`Review.svelte`, `Chat.svelte`, `+page.svelte`) and the `:lang` font block in `src/app.css`, then rebuild.
 4. Render a sample paragraph with mixed Latin text and digits, and check line breaks and spacing in a screenshot.

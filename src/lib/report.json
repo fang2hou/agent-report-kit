@@ -1,6 +1,6 @@
 {
   "lang": "zh-CN",
-  "title": "report-kit 组件库与模板视觉对齐验收",
+  "title": "agent-report-kit 组件库与模板视觉对齐验收",
   "kicker": "渲染器迁移 · Phase 2",
   "meta": "范围：template.html 的全部组件在三语字体栈下的渲染对齐。判定方式：本页每个组件的视觉与交互。",
   "summary": [
@@ -88,7 +88,7 @@
           "entries": [
             {
               "k": "所有者",
-              "v": "fang2hou/report-kit"
+              "v": "fang2hou/agent-agent-report-kit"
             },
             {
               "k": "基线",

@@ -43,7 +43,7 @@
     {
       type: 'kv',
       entries: [
-        { k: '所有者', v: 'fang2hou/report-kit' },
+        { k: '所有者', v: 'fang2hou/agent-agent-report-kit' },
         { k: '令牌来源', v: 'app.css @theme（Tailwind v4）' },
         { k: '字体栈', v: '按 lang 切换（en / zh / ja）' }
       ]
@@ -202,14 +202,14 @@
 </script>
 
 <svelte:head>
-  <title>report-kit 组件预览</title>
+  <title>agent-report-kit 组件预览</title>
 </svelte:head>
 
 <main class="page grid grid-cols-[1fr_min(var(--measure),100%)_1fr] px-7 pb-30 pt-14">
   <header class="masthead mb-9 min-w-0 col-start-2">
-    <p class="kicker m-0 mb-[0.6em] font-ui text-[0.86em] tracking-normal text-muted">report-kit · styleguide</p>
+    <p class="kicker m-0 mb-[0.6em] font-ui text-[0.86em] tracking-normal text-muted">agent-report-kit · styleguide</p>
     <h1>组件与配色预览</h1>
-    <p class="meta m-0 font-ui text-[0.86em] tracking-normal text-muted">全部组件由 report-kit 渲染；色值运行时读取令牌真值。</p>
+    <p class="meta m-0 font-ui text-[0.86em] tracking-normal text-muted">全部组件由 agent-report-kit 渲染；色值运行时读取令牌真值。</p>
   </header>
 
   <section id="palette" class="min-w-0 col-start-2">
@@ -261,6 +261,6 @@
 
   <section class="min-w-0 col-start-2">
     <h2>审阅表单</h2>
-    <Review_ review={demoReview} title="report-kit 组件预览" />
+    <Review_ review={demoReview} title="agent-report-kit 组件预览" />
   </section>
 </main>
