@@ -31,7 +31,7 @@ node tools/build.ts <report.json> out/index.html   # validate + compile + inject
 python3 tools/serve.py start out/                  # serve it, collect answers
 ```
 
-The compiled `index.html` runs anywhere — browser, `file://`, email attachment. `mise run` lists every other task (`check`, `dev`, `lint`, `typecheck`).
+The compiled `index.html` runs anywhere — browser, `file://`, email attachment. `mise run` lists every other task (`check`, `format`, `lint`, `typecheck`, `validate`).
 
 <details>
 <summary>Authoring reference and the styleguide</summary>
