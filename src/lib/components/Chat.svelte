@@ -117,10 +117,9 @@
       chip.classList.toggle('on', on);
       label.textContent = on ? W.on : W.off;
     };
-    if (!live) {
-      setConn(false);
-      return; // Unserved page: the browser keeps answers; no chat channel.
-    }
+    // Unserved page: no chat channel and no connection chip — the final
+    // artifact must not carry any server UI. The browser keeps review answers.
+    if (!live) return;
 
     const threads = new Map<string, Thread>();
     let cursor = 0;
