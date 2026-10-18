@@ -1,7 +1,9 @@
 import { execSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { reportSchema } from "../src/lib/schema.ts";
+
+const ROOT = join(import.meta.dirname, "..");
 
 const jsonPath = process.argv[2];
 const outPath = process.argv[3] ?? "build/report.html";
@@ -20,9 +22,9 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-execSync("pnpm exec vite build", { stdio: "inherit" });
+execSync("pnpm exec vite build", { cwd: ROOT, stdio: "inherit" });
 
-let template = readFileSync("build/index.html", "utf8");
+let template = readFileSync(join(ROOT, "build/index.html"), "utf8");
 const tag = (json: string) => `<script id="report-data" type="application/json">${json}</script>`;
 // "</" would terminate the script tag from inside a JSON string; "\/" is a valid JSON escape.
 const payload = reportText.replace(/<\//g, "<\\/");
