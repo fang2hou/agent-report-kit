@@ -1,5 +1,4 @@
 <script lang="ts">
-  import '../app.css';
   import raw from '#lib/report.json';
   import type { Report } from '#lib/types';
   import Block from '#lib/components/Block.svelte';
@@ -71,7 +70,7 @@
     </section>
   {/each}
 
-  {#if report.review}
+  {#if report.review && report.review.questions.length > 0}
     <section>
       <h2>{t.review}</h2>
       <Review review={report.review} title={report.title} />
