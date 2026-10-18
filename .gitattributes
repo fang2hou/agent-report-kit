@@ -1,0 +1,6 @@
+* -linguist-detectable
+src/** linguist-detectable
+vite.config.ts linguist-detectable
+*.json -linguist-detectable
+*.toml -linguist-detectable
+pnpm-lock.yaml linguist-generated

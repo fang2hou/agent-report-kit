@@ -1,0 +1,17 @@
+[tools]
+node = "24"
+pnpm = "12"
+prek = "latest"
+cocogitto = "latest"
+
+[tasks.lint]
+run = "pnpm lint"
+
+[tasks.format]
+run = "pnpm exec oxfmt --check ."
+
+[tasks.typecheck]
+run = "pnpm check"
+
+[tasks.check]
+depends = ["lint", "format", "typecheck"]
