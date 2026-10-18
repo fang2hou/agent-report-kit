@@ -43,7 +43,7 @@
     {
       type: 'kv',
       entries: [
-        { k: '所有者', v: 'fang2hou/agent-agent-report-kit' },
+        { k: '所有者', v: 'fang2hou/agent-report-kit' },
         { k: '令牌来源', v: 'app.css @theme（Tailwind v4）' },
         { k: '字体栈', v: '按 lang 切换（en / zh / ja）' }
       ]
