@@ -93,6 +93,9 @@
   <div class="compare {block.wide ? 'wide' : ''}">
     {#each block.cards as card (card.heading)}
       <article class:pick={card.pick}>
+        {#if card.badge}
+          <span class="badge">{card.badge}</span>
+        {/if}
         <h3>{@html card.heading}</h3>
         {#if card.text}
           <p>{@html card.text}</p>
@@ -307,10 +310,27 @@
   }
 
   .compare > article {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--r-lg);
     padding: 18px 22px;
+  }
+
+  .badge {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--ui);
+    font-size: 0.78em;
+    line-height: 1;
+    letter-spacing: 0;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    white-space: nowrap;
   }
 
   @supports (corner-shape: squircle) {

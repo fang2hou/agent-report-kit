@@ -23,6 +23,7 @@ export type Block =
       wide?: boolean;
       cards: {
         pick?: boolean;
+        badge?: string;
         heading: string;
         text?: string;
         pros?: string[];

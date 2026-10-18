@@ -100,7 +100,8 @@
           "cards": [
             {
               "pick": true,
-              "heading": "继续组件库路线 <span class=\"chip accent\">推荐</span>",
+              "badge": "推荐",
+              "heading": "继续组件库路线",
               "text": "agent 只写 JSON，渲染与主题由固定组件库保证。",
               "pros": ["正文与样式彻底分离", "多语言天然支持", "升级渲染器不改动历史报告"],
               "cons": ["初始组件开发成本已付", "schema 演进需要版本管理"]
