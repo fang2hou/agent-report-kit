@@ -7,10 +7,14 @@ import { pathToFileURL } from "node:url";
 const [input, output] = process.argv.slice(2);
 if (!input || !output) {
   console.error(
-    "Usage: pnpm export:pdf <report.json> <out.pdf> (requires Chrome/Chromium; CHROME_BIN overrides discovery)",
+    "Usage: pnpm export:pdf <report.json> <out.pdf> (requires Chrome/Chromium/Edge; CHROME_BIN overrides discovery)",
   );
   process.exit(2);
 }
+// Windows: per-user and system installs of Chrome, then Edge (preinstalled, also Chromium).
+const windowsRoots = ["LOCALAPPDATA", "ProgramFiles", "ProgramFiles(x86)"]
+  .map((name) => process.env[name])
+  .filter((root): root is string => Boolean(root));
 const browser =
   process.env.CHROME_BIN ??
   [
@@ -18,13 +22,16 @@ const browser =
     "/usr/bin/chromium",
     "/usr/bin/chromium-browser",
     "/usr/bin/google-chrome",
-    ...(process.env.PROGRAMFILES
-      ? [join(process.env.PROGRAMFILES, "Google/Chrome/Application/chrome.exe")]
+    ...(process.platform === "win32"
+      ? [
+          ...windowsRoots.map((root) => join(root, "Google/Chrome/Application/chrome.exe")),
+          ...windowsRoots.map((root) => join(root, "Microsoft/Edge/Application/msedge.exe")),
+        ]
       : []),
   ].find(existsSync);
 if (!browser)
   throw new Error(
-    "Chrome/Chromium not found. Set CHROME_BIN, or print the exported HTML to PDF in your browser.",
+    "Chrome/Chromium/Edge not found. Set CHROME_BIN, or print the exported HTML to PDF in your browser.",
   );
 const scratch = mkdtempSync(join(tmpdir(), "agent-report-pdf-"));
 mkdirSync(dirname(resolve(output)), { recursive: true });
