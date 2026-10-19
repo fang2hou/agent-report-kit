@@ -32,7 +32,7 @@ node tools/build.ts <report.json> <out.html>  # full compile, works from any cwd
 node tools/diagram.ts <diagram.mmd> [out.svg] # Mermaid → themed SVG (Pele); prints to stdout without out
 node tools/serve.ts start <dir>            # start a session from report.json
 pnpm export:html <report.json> <out.html>   # standalone offline report
-pnpm export:pdf <report.json> <out.pdf>     # requires Chrome/Chromium (CHROME_BIN overrides)
+pnpm export:pdf <report.json> <out.pdf>     # requires Chrome/Chromium/Edge (CHROME_BIN overrides)
 pnpm test                                 # event delivery, lease, and navigation regressions
 mise run check                               # full validation — what CI runs
 mise run lint | typecheck | format | validate # individual gates

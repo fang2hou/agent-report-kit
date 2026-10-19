@@ -18,7 +18,7 @@ Run from the kit or use `pnpm -C <kit>` from another directory.
 | `node tools/serve.ts status <dir>`                                     | Check process availability and recent Agent listening; does not renew the lease                                                            |
 | `report:stop <dir>`                                                    | Close and verify termination; retain collected data                                                                                        |
 | `export:html <report.json> <out.html>`                                 | Produce an offline, single-file report with no service requests                                                                            |
-| `export:pdf <report.json> <out.pdf>`                                   | Print the same content with Chrome/Chromium; `CHROME_BIN` overrides discovery                                                              |
+| `export:pdf <report.json> <out.pdf>`                                   | Print the same content with a Chromium browser (Chrome/Chromium/Edge); `CHROME_BIN` overrides discovery                                    |
 
 ## Consumer loop
 

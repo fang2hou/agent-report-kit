@@ -23,7 +23,7 @@ Work in this repository. Read AGENTS.md at the repository root first and follow 
 
 The agent-report skill in [fang2hou/skills](https://github.com/fang2hou/skills) already drives this renderer end to end: it clones the repo, writes `report.json`, and runs the tools below. The kit is not bound to one harness — any skill or script that produces a `report.json` can use the same build-and-serve flow.
 
-**As a human** — requires [mise](https://mise.jdx.dev/) on macOS or Linux. Node and pnpm versions are pinned in `mise.toml`; PDF export uses an installed Chrome/Chromium browser.
+**As a human** — requires [mise](https://mise.jdx.dev/) on macOS or Linux. Node and pnpm versions are pinned in `mise.toml`; PDF export uses an installed Chromium browser (Chrome, Chromium, or Edge on Windows).
 
 ```bash
 mise install && pnpm install
